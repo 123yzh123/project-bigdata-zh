@@ -36,3 +36,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/tmall-data-warehouse/1_data_import/01--全量数据同步（全量）.sh
