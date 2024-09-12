@@ -95,6 +95,52 @@ WHERE (date_format(create_time, '%Y-%m-%d') = '${do_date}'
            OR date_format(operate_time, '%Y-%m-%d') = '${do_date}')"
 }
 
+# todo 每日同步表：order_detail_coupon
+import_order_detail_coupon(){
+  import_data order_detail_coupon_inc "SELECT
+    id,
+    order_id,
+    order_detail_id,
+    coupon_id,
+    coupon_use_id,
+    sku_id,
+    create_time
+FROM order_detail_coupon
+WHERE date_format(create_time, '%Y-%m-%d') = '${do_date}'"
+}
+
+# todo 每日同步表：order_status_log
+import_order_status_log(){
+  import_data order_status_log_inc "SELECT
+        id,
+        order_id,
+        order_status,
+        operate_time
+FROM order_status_log
+WHERE date_format(operate_time, '%Y-%m-%d') = '${do_date}'"
+}
+
+# todo 每日同步表：cart_info
+import_cart_info(){
+  import_data cart_info_inc "SELECT
+        id,
+            user_id,
+            sku_id,
+            cart_price,
+            sku_num,
+            img_url,
+            sku_name,
+            is_checked,
+            create_time,
+            operate_time,
+            is_ordered,
+            order_time,
+            source_type,
+            source_id
+FROM cart_info
+WHERE (date_format(create_time, '%Y-%m-%d') = '${do_date}'
+           OR date_format(operate_time, '%Y-%m-%d') = '${do_date}')"
+}
 
 # 条件判断，依据执行脚本传递第1个参数值，确定同步导入哪个表数据，或同步导入所有表数据
 case $1 in
@@ -107,10 +153,22 @@ case $1 in
   "order_info")
     import_order_info
 ;;
+  "order_detail_coupon")
+    import_order_detail_coupon
+;;
+  "order_status_log")
+    import_order_status_log
+;;
+  "cart_info")
+    import_cart_info
+;;
   "all")
     import_base_dic
     import_order_detail
     import_order_info
+    import_order_detail_coupon
+    import_order_status_log
+    import_cart_info
 ;;
 esac
 
