@@ -142,6 +142,180 @@ WHERE (date_format(create_time, '%Y-%m-%d') = '${do_date}'
            OR date_format(operate_time, '%Y-%m-%d') = '${do_date}')"
 }
 
+# todo 每日同步表：coupon_info
+import_coupon_info(){
+  import_data coupon_info_full "SELECT
+        id,
+        coupon_name,
+        coupon_type,
+        condition_amount,
+        condition_num,
+        activity_id,
+        benefit_amount,
+        benefit_discount,
+        create_time,
+        range_type,
+        limit_num,
+        taken_count,
+        start_time,
+        end_time,
+        operate_time,
+        expire_time,
+        range_desc
+FROM coupon_info
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：coupon_range
+import_coupon_range(){
+  import_data coupon_range_full "SELECT
+        id,
+        coupon_id,
+        range_type,
+        range_id
+FROM coupon_range
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：coupon_use
+import_coupon_use(){
+  import_data coupon_use_full "SELECT
+        id,
+        coupon_id,
+        user_id,
+        order_id,
+        coupon_status,
+        create_time,
+        get_time,
+        using_time,
+        used_time,
+        expire_time
+FROM coupon_use
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：sku_attr_value
+import_sku_attr_value(){
+  import_data sku_attr_value_full "SELECT
+        id,
+        attr_id,
+        value_id,
+        sku_id,
+        attr_name,
+        value_name,
+FROM sku_attr_value
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：sku_info
+import_sku_info(){
+  import_data sku_info_full "SELECT
+        id,
+        spu_id,
+        price,
+        sku_name,
+        sku_desc,
+        weight,
+        tm_id,
+        category3_id,
+        sku_default_img,
+        is_sale,
+        create_time
+FROM sku_info
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：sku_sale_attr_value
+import_sku_sale_attr_value(){
+  import_data sku_sale_attr_value_full "SELECT
+        id,
+        spu_id,
+        price,
+        sku_name,
+        sku_desc,
+        weight,
+        tm_id,
+        category3_id,
+        sku_default_img,
+        is_sale,
+        create_time
+FROM sku_sale_attr_value
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：spu_info
+import_spu_info(){
+  import_data spu_info_full "SELECT
+        id,
+        spu_name,
+        description,
+        category3_id,
+        tm_id
+FROM spu_info
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：spu_image
+import_spu_image(){
+  import_data spu_image_full "SELECT
+        id,
+        spu_id,
+        img_name,
+        img_url
+FROM spu_image
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：spu_poster
+import_spu_poster(){
+  import_data spu_poster_full "SELECT
+        id,
+        spu_id,
+        img_name,
+        img_url,
+        create_time,
+        update_time,
+        is_deleted
+FROM spu_poster
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：spu_sale_attr
+import_spu_sale_attr(){
+  import_data spu_sale_attr_full "SELECT
+        id,
+        spu_id,
+        base_sale_attr_id,
+        sale_attr_name
+FROM spu_sale_attr
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：spu_sale_attr_value
+import_spu_sale_attr_value(){
+  import_data spu_sale_attr_value_full "SELECT
+        id,
+        spu_id,
+        base_sale_attr_id,
+        sale_attr_value_name,
+        sale_attr_name
+FROM spu_sale_attr_value
+WHERE 1 = 1"
+}
+
+# todo 每日同步表：sku_image
+import_sku_image(){
+  import_data sku_image_full "SELECT
+        id,
+        sku_id,
+        img_name,
+        img_url,
+        spu_img_id,
+        is_default
+FROM sku_image
+WHERE 1 = 1"
+}
+
 # 条件判断，依据执行脚本传递第1个参数值，确定同步导入哪个表数据，或同步导入所有表数据
 case $1 in
   "base_dic")
@@ -162,6 +336,42 @@ case $1 in
   "cart_info")
     import_cart_info
 ;;
+  "coupon_info")
+    import_coupon_info
+;;
+  "coupon_range")
+    import_coupon_range
+;;
+  "coupon_use")
+    import_coupon_use
+;;
+  "sku_attr_value")
+    import_sku_attr_value
+;;
+  "sku_info")
+    import_sku_info
+;;
+  "sku_sale_attr_value")
+    import_sku_sale_attr_value
+;;
+  "spu_info")
+    import_spu_info
+;;
+  "spu_image")
+    import_spu_image
+;;
+  "spu_poster")
+    import_spu_poster
+;;
+  "spu_sale_attr")
+    import_spu_sale_attr
+;;
+  "spu_sale_attr_value")
+    import_spu_sale_attr_value
+;;
+  "sku_image")
+    import_sku_image
+;;
   "all")
     import_base_dic
     import_order_detail
@@ -169,6 +379,18 @@ case $1 in
     import_order_detail_coupon
     import_order_status_log
     import_cart_info
+    import_coupon_info
+    import_coupon_range
+    import_coupon_use
+    import_sku_attr_value
+    import_sku_info
+    import_sku_sale_attr_value
+    import_spu_info
+    import_spu_image
+    import_spu_poster
+    import_spu_sale_attr
+    import_spu_sale_attr_value
+    import_sku_image
 ;;
 esac
 
