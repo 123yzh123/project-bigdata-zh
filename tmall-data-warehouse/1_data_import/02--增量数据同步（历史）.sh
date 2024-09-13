@@ -31,7 +31,6 @@ WHERE date_format(create_time, '%Y-%m-%d') <= '2024-06-18' AND \$CONDITIONS" \
 --null-string '\\N' \
 --null-non-string '\\N'
 
-
 # todo 2. 订单明细优惠券关联表：order_detail_coupon  （增量、历史）
 
 /opt/module/sqoop/bin/sqoop import \
