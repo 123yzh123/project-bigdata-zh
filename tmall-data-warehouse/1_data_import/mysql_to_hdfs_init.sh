@@ -31,17 +31,8 @@ import_data(){
 }
 
 #  ======================================== 针对每个表，调用定义函数，同步数据 ========================================
-# todo 首日同步表：base_dic
-import_base_dic(){
-  import_data base_dic_full "SELECT
-                          dic_code,
-                          dic_name,
-                          parent_code,
-                          create_time,
-                          operate_time
-                        FROM base_dic
-                        WHERE 1 = 1"
-}
+
+
 
 # todo 首日同步表：order_detail
 import_order_detail(){
@@ -95,6 +86,61 @@ import_order_info(){
                         WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
 }
 
+
+# todo 首日同步表：payment_info
+import_payment_info(){
+  import_data payment_info_inc "SELECT
+                              id,
+                                  out_trade_no,
+                                  order_id,
+                                  user_id,
+                                  payment_type,
+                                  trade_no,
+                                  total_amount,
+                                  subject,
+                                  payment_status,
+                                  create_time,
+                                  callback_time,
+                                  callback_content
+                          FROM payment_info
+                          WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+# todo 首日同步表：order_refund_info
+import_order_refund_info(){
+  import_data order_refund_info_inc "SELECT
+                              id,
+                                  user_id,
+                                  order_id,
+                                  sku_id,
+                                  refund_type,
+                                  refund_num,
+                                  refund_amount,
+                                  refund_reason_type,
+                                  refund_reason_txt,
+                                  refund_status,
+                                  create_time
+                          FROM order_refund_info
+                          WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+# todo 首日同步表：refund_payment
+import_refund_payment(){
+  import_data refund_payment_inc "SELECT
+                              id,
+                                  out_trade_no,
+                                  order_id,
+                                  sku_id,
+                                  payment_type,
+                                  trade_no,
+                                  total_amount,
+                                  subject,
+                                  refund_status,
+                                  create_time,
+                                  callback_time,
+                                   callback_content
+                          FROM refund_payment
+                          WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
 # todo 首日同步表：order_detail_coupon
 import_order_detail_coupon(){
   import_data order_detail_coupon_inc "SELECT
@@ -141,17 +187,107 @@ FROM cart_info
 WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
 }
 
+# todo 1.首日同步表：favor_info 收藏表
+import_favor_info(){
+  import_data favor_info_inc "SELECT
+                                      id,
+                                      user_id,
+                                      sku_id,
+                                      spu_id,
+                                      is_cancel,
+                                      create_time,
+                                      cancel_time
+                          FROM favor_info
+                          WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
+# todo 2.首日同步表：order_detail
+
+# todo 首日同步表：user_info
+import_user_info(){
+  import_data user_info_inc "SELECT
+                          id,
+                              login_name,
+                              nick_name,
+                              passwd,
+                              name,
+                              phone_num,
+                              email,
+                              head_img,
+                              user_level,
+                              birthday,
+                              gender,
+                              create_time,
+                              operate_time,
+                              status
+                        FROM user_info
+                        WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
+import_comment_info(){
+  import_data comment_info_inc "SELECT
+                               id,
+                               user_id,
+                               nick_name,
+                               head_img,
+                               sku_id,
+                               spu_id,
+                               order_id,
+                               appraise,
+                               comment_txt,
+                               create_time,
+                               operate_time
+                           FROM comment_info
+                           WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
+import_coupon_use(){
+  import_data coupon_use_inc "SELECT
+                             id,
+                             coupon_id,
+                             user_id,
+                             order_id,
+                             coupon_status,
+                             create_time,
+                             get_time,
+                             using_time,
+                             used_time,
+                             expire_time
+                         FROM coupon_use
+                         WHERE date_format(get_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
+import_order_detail_activity(){
+  import_data order_detail_activity_inc "SELECT
+                             id,
+                             order_id,
+                             order_detail_id,
+                             activity_id,
+                             activity_rule_id,
+                             sku_id,
+                             create_time
+                         FROM order_detail_activity
+                         WHERE date_format(create_time, '%Y-%m-%d') <= '${do_date}'"
+}
+
+
 
 # 条件判断，依据执行脚本传递第1个参数值，确定同步导入哪个表数据，或同步导入所有表数据
 case $1 in
-  "base_dic")
-    import_base_dic
-;;
   "order_detail")
     import_order_detail
 ;;
   "order_info")
     import_order_info
+;;
+  "payment_info")
+    import_payment_info
+;;
+  "order_refund_info")
+    import_order_refund_info
+;;
+  "refund_payment")
+    import_refund_payment
 ;;
   "order_detail_coupon")
     import_order_detail_coupon
@@ -162,13 +298,35 @@ case $1 in
   "cart_info")
     import_cart_info
 ;;
+  "favor_info")
+    import_favor_info
+;;
+  "user_info")
+    import_user_info
+;;
+  "comment_info")
+    import_comment_info
+;;
+  "coupon_use")
+    import_coupon_use
+;;
+  "order_detail_activity")
+    import_order_detail_activity
+;;
   "all")
-    import_base_dic
     import_order_detail
     import_order_info
+    import_payment_info
+    import_order_refund_info
+    import_refund_payment
     import_order_detail_coupon
     import_order_status_log
     import_cart_info
+    import_favor_info
+    import_user_info
+    import_comment_info
+    import_coupon_use
+    import_order_detail_activity
 ;;
 esac
 
@@ -182,3 +340,10 @@ esac
 # 同步某一张表
 # sh mysql_to_hdfs_init.sh order_detail 2024-03-31
 #
+
+
+
+
+
+
+
