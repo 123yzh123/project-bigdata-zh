@@ -1,5 +1,5 @@
 -- todo 10. 加购表：cart_info（每日，全量）
-LOAD DATA INPATH '/origin_data/gmall/cart_info_inc/2024-06-18'
+LOAD DATA INPATH '/origin_data/gmall/cart_info_full/2024-06-18'
     OVERWRITE INTO TABLE gmall.ods_cart_info_inc PARTITION (dt = '2024-06-18');
 
 --显示分区数目
