@@ -91,7 +91,7 @@ CREATE EXTERNAL TABLE gmall.ods_base_category2_full
     LOCATION '/warehouse/gmall/ods/ods_base_category2_full/';
 
 
-- ======================================================================
+-- ======================================================================
 --                todo：5. 一级分类表：base_category1（每日，全量）
 -- ======================================================================
 DROP TABLE IF EXISTS gmall.ods_base_category1_full;
@@ -590,7 +590,6 @@ CREATE EXTERNAL TABLE gmall.ods_payment_info_inc
     STORED AS TEXTFILE
     LOCATION '/warehouse/gmall/ods/ods_payment_info_inc/';
 
--
 
 -- ======================================================================
 --               todo： 12.退款信息表：refund_payment（每日，新增变化）

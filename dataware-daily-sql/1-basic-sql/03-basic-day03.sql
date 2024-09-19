@@ -67,6 +67,14 @@ todo 如何进行列转行
 */
 
 
+
+DESC FUNCTION concat;
+/*
+concat(str1, str2, ... strN) - returns the concatenation of str1, str2, ... strN or concat(bin1, bin2, ... binN)
+    - returns the concatenation of bytes in binary data  bin1, bin2, ... binN
+*/
+
+
 -- 3）、查询一共参加三门课程且其中一门为语文课程的学生的id和姓名；
 
 SELECT course_id FROM hive_sql_zg5.course_info WHERE course_name = '语文' ;
@@ -97,12 +105,71 @@ array_contains(array, value) - Returns TRUE if the array contains value.
 
 -- todo：3.2、子查询
 -- 1）、查询所有课程成绩均小于60分的学生的学号、姓名；
-
+WITH
+    tmp1 AS (
+        -- step1. 获取学号：每个学生最高分成绩如果小于60，表示所有科目成绩小于60
+        SELECT
+            stu_id
+        -- , collect_list(score) AS score_list
+        FROM hive_sql_zg5.score_info
+        GROUP BY stu_id
+        HAVING max(score) < 60
+    )
+-- step2. 关联学生信息，获取学生姓名
+SELECT
+    t1.stu_id, t2.stu_name
+FROM tmp1 t1
+         LEFT JOIN hive_sql_zg5.student_info t2 ON t1.stu_id = t2.stu_id
+;
 
 -- 2）、查询没有学全所有课的学生的学号、姓名；
+-- step1. 所有科目总数
+SELECT count(course_id) AS cnt FROM hive_sql_zg5.course_info;
+
+WITH
+    tmp1 AS (
+        -- step1. 学生所学课程的数目
+        SELECT
+            stu_id
+             , count(DISTINCT course_id) AS stu_cnt
+        FROM hive_sql_zg5.score_info
+        GROUP BY stu_id
+    )
+   , tmp2 AS (
+    SELECT
+        stu_id
+         , stu_cnt
+    FROM tmp1
+    WHERE stu_cnt < (
+        -- step2. 所有科目总数
+        SELECT count(course_id) AS cnt FROM hive_sql_zg5.course_info
+    )
+)
+-- step3. 关联学生信息，获取学生姓名
+SELECT
+    t2.stu_id, t3.stu_name
+FROM tmp2 t2
+         LEFT JOIN hive_sql_zg5.student_info t3 ON t2.stu_id = t3.stu_id
+;
+
 
 
 -- 3）、查询出只选修了三门课程的全部学生的学号和姓名；
-
+WITH
+    tmp1 AS (
+        -- step1. 学生所学课程的数目
+        SELECT
+            stu_id
+             , count(DISTINCT course_id) AS stu_cnt
+        FROM hive_sql_zg5.score_info
+        GROUP BY stu_id
+        HAVING stu_cnt = 3
+    )
+-- step2. 关联学生信息，获取学生姓名
+SELECT
+    t1.stu_id, t2.stu_name
+FROM tmp1 t1
+         LEFT JOIN hive_sql_zg5.student_info t2 ON t1.stu_id = t2.stu_id
+;
 
 
