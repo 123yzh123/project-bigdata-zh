@@ -17,5 +17,6 @@
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/2_data_warehouse/b_dim_公共维度层/zip-table-data/3-拉链表实现--采用union+rownumber.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/2_data_warehouse/c_dwd_明细数据层/01--dwd--ddl--创建表.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/2_data_warehouse/c_dwd_明细数据层/02--dwd--load--数据加载.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/2_data_warehouse/c_dwd_明细数据层/dwd_log_sql.sql" dialect="HiveQL" />
   </component>
 </project>

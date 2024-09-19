@@ -1,0 +1,22 @@
+
+
+SQOOP 同步数据
+    sqoop import 导入：将数据从MySQL表同步到HDFS
+    sqoop export 导出：将数据从HDFS同步到MySQL表
+
+1）、数据导入
+    第1种：全量同步
+        整个表数据获取，进行同步，比如从MySQL表获取全部数据，写入HDFS
+
+    第2种：增量同步
+        历史数据：以前数据，整体获取，进行同步，比如2024-09-11之前所有数据获取同步
+        每日数据：当前数据，进行同步，比如2024-09-12天数据获取同步
+
+
+启动服务
+    hdp.sh hdfs
+    hdp.sh yarn
+    hdp.sh history
+
+
+

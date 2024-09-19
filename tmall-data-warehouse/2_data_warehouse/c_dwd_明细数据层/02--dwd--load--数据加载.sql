@@ -5,8 +5,6 @@ SET hive.exec.dynamic.partition=true;
 -- 非严格模式：允许所有分区都是动态的
 SET hive.exec.dynamic.partition.mode=nonstrict;
 
-
-
 -- todo 1 交易域-加购-事务事实表
 -- （1）首日装载
 WITH cart
