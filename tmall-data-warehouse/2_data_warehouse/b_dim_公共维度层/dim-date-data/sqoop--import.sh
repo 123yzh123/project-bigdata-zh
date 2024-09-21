@@ -24,4 +24,3 @@ WHERE \$CONDITIONS" \
 --fields-terminated-by '\t' \
 --null-string '\\N' \
 --null-non-string '\\N'
-

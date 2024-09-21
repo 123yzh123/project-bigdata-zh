@@ -12,12 +12,12 @@ SET hive.stats.autogather=false;
 --============================================
 
 
-load data inpath '/origin_data/gmall/log/2024-09-11' into table ods_log_inc partition (dt = '2024-09-11');
+LOAD DATA INPATH '/origin_data/gmall/log/2024-09-11' INTO TABLE ods_log_inc PARTITION (dt = '2024-09-11');
 
 --显示分区数目
 SHOW PARTITIONS gmall.ods_log_inc;
 --查询分区表数据，where过滤日期，limit显示条目数
 SELECT *
 FROM gmall.ods_log_inc
-WHERE dt = '2024-09-12'
+WHERE dt = '2024-09-18'
 LIMIT 10;

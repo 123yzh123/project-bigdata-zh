@@ -108,3 +108,4 @@ LOAD DATA INPATH '/origin_data/gmall/tmp_user_info_inc/2024-06-18'
 
 LOAD DATA INPATH '/origin_data/gmall/tmp_user_info_inc/2024-06-19'
     OVERWRITE INTO TABLE gmall.tmp_ods_user_info_inc PARTITION (dt = '2024-06-19');
+

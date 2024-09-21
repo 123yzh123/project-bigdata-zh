@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="94da8877-8cd1-44c6-a79c-cf0576fddd9e" name="node101">
-        <fileTransfer accessType="SFTP" host="node101" port="22" sshConfigId="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" sshConfig="bwie@node101:22 password">
+        <fileTransfer rootFolder="/home/bwie" accessType="SFTP" host="node101" port="22" sshConfigId="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" sshConfig="bwie@node101:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

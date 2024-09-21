@@ -44,3 +44,4 @@ REPLACE INTO `tmall_tmp`.`user_info` VALUES ('10', 'kimpfl47c8a', '露瑶', null
 REPLACE INTO `tmall_tmp`.`user_info` VALUES ('11', 'ddddsere', '马涛', null, '海涛', '13977633428', 'matao@126.com', null, '1', '2004-01-12', 'M', '2024-06-19 09:00:23', '2024-06-19 09:00:23', null);
 
 
+SELECT * FROM `tmall_tmp`.`user_info`;

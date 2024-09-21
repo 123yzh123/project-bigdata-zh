@@ -129,3 +129,79 @@ DESC FUNCTION last_value;
 
 
 
+
+-- todo 10 流量域-页面浏览-事务事实表
+WITH
+    log AS (
+        select
+            common.ar area_code,
+            common.ba brand,
+            common.ch channel,
+            common.is_new is_new,
+            common.md model,
+            common.mid mid_id,
+            common.os operate_system,
+            common.uid user_id,
+            common.vc version_code,
+            page.during_time,
+            page.item page_item,
+            page.item_type page_item_type,
+            page.last_page_id,
+            page.page_id,
+            page.source_type,
+            ts,
+            if(page.last_page_id is null,ts,null) session_start_point
+        from gmall.ods_log_inc
+        where dt='2024-09-11'
+          and page is not null
+    ),
+    base_province AS (
+        select
+            id province_id,
+            area_code
+        from gmall.ods_base_province_full
+        where dt='2024-09-12'
+    )
+insert overwrite table gmall.dwd_traffic_page_view_inc partition (dt='2024-09-12')
+select
+    province_id,
+    brand,
+    channel,
+    is_new,
+    model,
+    mid_id,
+    operate_system,
+    user_id,
+    version_code,
+    page_item,
+    page_item_type,
+    last_page_id,
+    page_id,
+    source_type,
+    date_format(from_utc_timestamp(ts,'GMT+8'),'yyyy-MM-dd') date_id,
+    date_format(from_utc_timestamp(ts,'GMT+8'),'yyyy-MM-dd HH:mm:ss') view_time,
+    concat(mid_id,'-',last_value(session_start_point,true) over (partition by mid_id order by ts)) session_id,
+    during_time
+from
+    log
+        left join
+    base_province AS bp
+    on log.area_code=bp.area_code;
+
+
+
+
+
+select * from gmall.dwd_traffic_page_view_inc;
+
+
+
+
+
+
+
+
+
+
+
+
