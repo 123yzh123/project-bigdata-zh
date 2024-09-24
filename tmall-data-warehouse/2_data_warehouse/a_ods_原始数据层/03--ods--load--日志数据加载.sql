@@ -12,7 +12,7 @@ SET hive.stats.autogather=false;
 --============================================
 
 
-LOAD DATA INPATH '/origin_data/gmall/log/2024-09-11' INTO TABLE ods_log_inc PARTITION (dt = '2024-09-11');
+LOAD DATA INPATH '/origin_data/gmall/log/2024-09-18' INTO TABLE ods_log_inc PARTITION (dt = '2024-09-18');
 
 --显示分区数目
 SHOW PARTITIONS gmall.ods_log_inc;

@@ -59,14 +59,7 @@ WITH sku as
           from gmall.ods_sku_sale_attr_value_full
           where dt = '2024-09-12'
           group by sku_id)
-insert
-overwrite
-table
-gmall.dim_sku_full
-partition
-(
-dt = '2024-09-12'
-)
+insert overwrite table gmall.dim_sku_full partition(dt = '2024-09-12')
 select sku.id,
        sku.price,
        sku.sku_name,
@@ -120,14 +113,7 @@ WITH ci AS (SELECT id,
                   FROM gmall.ods_base_dic_full
                   WHERE dt = '2024-09-12'
                     AND parent_code IS NOT NULL)
-INSERT
-OVERWRITE
-TABLE
-gmall.dim_coupon_full
-PARTITION
-(
-dt = '2024-09-12'
-)
+INSERT OVERWRITE TABLE gmall.dim_coupon_full PARTITION( dt = '2024-09-12' )
 SELECT ci.id,
        ci.coupon_name,
        ci.coupon_type,
@@ -183,14 +169,7 @@ WITH rule AS (SELECT id,
              FROM gmall.ods_base_dic_full
              WHERE dt = '2024-09-12'
                AND parent_code = '31')
-INSERT
-OVERWRITE
-TABLE
-gmall.dim_activity_full
-PARTITION
-(
-dt = '2024-09-12'
-)
+INSERT OVERWRITE TABLE gmall.dim_activity_full PARTITION(dt = '2024-09-12')
 SELECT rule.id,
        info.id,
        info.activity_name,
@@ -239,14 +218,7 @@ WITH
                        region_name
                 FROM gmall.ods_base_region_full
                 WHERE dt = '2024-09-12')
-INSERT
-OVERWRITE
-TABLE
-gmall.dim_province_full
-PARTITION
-(
-dt = '2024-09-12'
-)
+INSERT OVERWRITE TABLE gmall.dim_province_full PARTITION(dt = '2024-09-12')
 -- c. 省份数据关联地区数据，按照region_id关联
 SELECT province.id,
        province.name,

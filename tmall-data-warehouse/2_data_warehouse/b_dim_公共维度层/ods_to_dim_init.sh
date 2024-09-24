@@ -1,5 +1,8 @@
 #!/bin/bash
 
+APP=gmall
+
+# 如果是输入的日期按照取输入日期
 if [ -n "$2" ] ;then
     do_date=$2
 else
@@ -7,200 +10,32 @@ else
   exit
 fi
 
-#3 活动维度表
-#    数据来源于：
-#        ods_activity_rule_full（全量） 和
-#        ods_activity_info_full（全量） 和
-#        ods_base_dic_full（全量） 合并
-dim_activity_sql="
-WITH
-    rule AS (
-        SELECT
-            id,
-            activity_id,
-            activity_type,
-            condition_amount,
-            condition_num,
-            benefit_amount,
-            benefit_discount,
-            benefit_level
-        FROM
-            gmall.ods_activity_rule_full
-        WHERE
-            dt='${do_date}'
-    ),
-    info AS (
-        SELECT
-            id,
-            activity_name,
-            activity_type,
-            activity_desc,
-            start_time,
-            end_time,
-            create_time
-        FROM
-            gmall.ods_activity_info_full
-        WHERE
-            dt='${do_date}'
-    ),
-    dic AS (
-        SELECT
-            dic_code,
-            dic_name
-        FROM
-            gmall.ods_base_dic_full
-        WHERE
-            dt='${do_date}'
-          AND parent_code='31'
-    )
-INSERT OVERWRITE TABLE gmall.dim_activity_full PARTITION(dt='${do_date}')
-SELECT
-    rule.id,
-    info.id,
-    info.activity_name,
-    rule.activity_type,
-    dic.dic_name,
-    info.activity_desc,
-    info.start_time,
-    info.end_time,
-    info.create_time,
-    rule.condition_amount,
-    rule.condition_num,
-    rule.benefit_amount,
-    rule.benefit_discount,
-    CASE
-        WHEN rule.activity_type = '3101' THEN CONCAT('满', rule.condition_amount, '元减', rule.benefit_amount, '元')
-        WHEN rule.activity_type = '3102' THEN CONCAT('满', rule.condition_num, '件打', 10 * (1 - rule.benefit_discount), '折')
-        WHEN rule.activity_type = '3103' THEN CONCAT('打', 10 * (1 - rule.benefit_discount), '折')
-        END AS benefit_rule,
-    rule.benefit_level
-FROM
-    rule
-        LEFT JOIN
-    info ON rule.activity_id = info.id
-        LEFT JOIN
-    dic ON rule.activity_type = dic.dic_code;
-"
-
-#2 优惠券维度表
-#    数据来源于：
-#        ods_coupon_info_full（全量） 和
-#        ods_base_dic_full（全量） 合并
-dim_coupon_sql="
-WITH
-    ci AS (
-    SELECT
-        id,
-        coupon_name,
-        coupon_type,
-        condition_amount,
-        condition_num,
-        activity_id,
-        benefit_amount,
-        benefit_discount,
-        create_time,
-        range_type,
-        limit_num,
-        taken_count,
-        start_time,
-        end_time,
-        operate_time,
-        expire_time
-    FROM gmall.ods_coupon_info_full
-    WHERE dt='2024-09-14'
-),
-     base_dic AS (
-         SELECT
-             dic_code,
-             dic_name
-         FROM gmall.ods_base_dic_full
-         WHERE dt='2024-09-14'
-           AND parent_code IS NOT NULL
-     )
-INSERT OVERWRITE TABLE gmall.dim_coupon_full PARTITION(dt='2024-09-14')
-SELECT
-    ci.id,
-    ci.coupon_name,
-    ci.coupon_type,
-    base_dic.dic_name,
-    ci.condition_amount,
-    ci.condition_num,
-    ci.activity_id,
-    ci.benefit_amount,
-    ci.benefit_discount,
-    CASE ci.coupon_type
-        WHEN '3201' THEN concat('满', ci.condition_amount, '元减', ci.benefit_amount, '元')
-        WHEN '3202' THEN concat('满', ci.condition_num, '件打', 10 * (1 - ci.benefit_discount), '折')
-        WHEN '3203' THEN concat('减', ci.benefit_amount, '元')
-        END AS benefit_rule,
-    ci.create_time,
-    ci.range_type,
-    base_dic.dic_name,
-    ci.limit_num,
-    ci.taken_count,
-    ci.start_time,
-    ci.end_time,
-    ci.operate_time,
-    ci.expire_time
-FROM ci
-         LEFT JOIN base_dic ON (ci.coupon_type = base_dic.dic_code
-                                   OR ci.range_type = base_dic.dic_code);
-"
-
-#4. 地区维度表
-#    数据来源于：
-#        ods_base_province_full（全量） 和
-#        ods_base_region_full（全量） 合并
-#省份数据关联地区数据，按照region_id关联
-dim_province_sql="
+# todo 0. 优化参数
+hive_tuning_sql="
+-- 不开启自动收集表统计信息
 SET hive.stats.autogather=false;
-WITH
-    province AS (
-        SELECT
-            id,
-            name,
-            region_id,
-            area_code,
-            iso_code,
-            iso_3166_2
-        FROM gmall.ods_base_province_full
-        WHERE dt = '${do_date}'
-    )
-    , region AS (
-        SELECT
-            id,
-            region_name
-        FROM gmall.ods_base_region_full
-        WHERE dt = '${do_date}'
-    )
-INSERT OVERWRITE TABLE gmall.dim_province_full PARTITION(dt = '${do_date}')
-SELECT
-    province.id,
-    province.name,
-    province.area_code,
-    province.iso_code,
-    province.iso_3166_2,
-    region_id,
-    region_name
-FROM province
-LEFT JOIN region ON province.region_id = region.id;
+-- 开启动态分区
+SET hive.exec.dynamic.partition=true;
+-- 非严格模式：允许所有分区都是动态的
+SET hive.exec.dynamic.partition.mode=nonstrict;
+-- 开启MapJoin优化
+SET hive.auto.convert.join = true;
+SET hive.mapjoin.smalltable.filesize = 25000000 ;
+-- 开启关联优化器
+SET hive.optimize.correlation = true;
+-- 开启SkewJoin优化
+SET hive.optimize.skewjoin = true;
+SET hive.optimize.skewjoin.compiletime = true;
+SET hive.optimize.union.remove = true;
 "
 
-#5 商品维度表
-#    数据来源于：
-#        ods_sku_info_full（全量） 和
-#        ods_spu_info_full（全量） 和
-#        ods_base_category3_full（全量） 和
-#        ods_base_category2_full（全量） 和
-#        ods_base_category1_full（全量） 和
-#        ods_base_trademark_full（全量） 和
-#        ods_sku_attr_value_full（全量） 和
-#        ods_sku_sale_attr_value_full（全量） 合并
-dim_sku_sql="
+# todo 1. 商品维度表
+dim_sku_full_sql="
 WITH
-    sku as
+    -- a. SKU商品信息表
+    sku AS
         (
-            select
+            SELECT
                 id,
                 price,
                 sku_name,
@@ -211,71 +46,84 @@ WITH
                 category3_id,
                 tm_id,
                 create_time
-            from gmall.ods_sku_info_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_sku_info_full
+            WHERE dt = '${do_date}'
         ),
-    spu as
+    -- b. SPU商品信息表
+    spu AS
         (
-            select
+            SELECT
                 id,
                 spu_name
-            from gmall.ods_spu_info_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_spu_info_full
+            WHERE dt = '${do_date}'
         ),
-    c3 as
+    -- c. 三级品类表
+    c3 AS
         (
-            select
+            SELECT
                 id,
                 name,
                 category2_id
-            from gmall.ods_base_category3_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_base_category3_full
+            WHERE dt = '${do_date}'
         ),
-    c2 as
+    -- c. 二级品类表
+    c2 AS
         (
-            select
+            SELECT
                 id,
                 name,
                 category1_id
-            from gmall.ods_base_category2_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_base_category2_full
+            WHERE dt = '${do_date}'
         ),
-    c1 as
+    -- d. 一级品类表
+    c1 AS
         (
-            select
+            SELECT
                 id,
                 name
-            from gmall.ods_base_category1_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_base_category1_full
+            WHERE dt='${do_date}'
         ),
-    tm as
+    -- e. 品牌表
+    tm AS
         (
-            select
+            SELECT
                 id,
                 tm_name
-            from gmall.ods_base_trademark_full
-            where dt='${do_date}'
+            FROM ${APP}.ods_base_trademark_full
+            WHERE dt='${do_date}'
         ),
-    attr as
+    -- f. sku商品平台属性表
+    attr AS
         (
-            select
+            SELECT
                 sku_id,
-                collect_set(named_struct('attr_id',attr_id,'value_id',value_id,'attr_name',attr_name,'value_name',value_name)) attrs
-            from gmall.ods_sku_attr_value_full
-            where dt='${do_date}'
-            group by sku_id
+                collect_set(
+                    named_struct('attr_id',attr_id,'value_id',value_id,'attr_name',attr_name,'value_name',value_name)
+                ) AS attrs
+            FROM ${APP}.ods_sku_attr_value_full
+            WHERE dt='${do_date}'
+            GROUP BY sku_id
         ),
-    sale_attr as
+    -- g. sku商品销售平台属性表
+    sale_attr AS
         (
-            select
+            SELECT
                 sku_id,
-                collect_set(named_struct('sale_attr_id',sale_attr_id,'sale_attr_value_id',sale_attr_value_id,'sale_attr_name',sale_attr_name,'sale_attr_value_name',sale_attr_value_name)) sale_attrs
-            from gmall.ods_sku_sale_attr_value_full
-            where dt='${do_date}'
-            group by sku_id
+                collect_set(
+                    named_struct('sale_attr_id',sale_attr_id,'sale_attr_value_id',sale_attr_value_id,
+                        'sale_attr_name',sale_attr_name,'sale_attr_value_name',sale_attr_value_name)
+                ) AS sale_attrs
+            FROM ${APP}.ods_sku_sale_attr_value_full
+            WHERE dt='${do_date}'
+            GROUP BY sku_id
         )
-insert overwrite table gmall.dim_sku_full partition(dt='${do_date}')
-select
+INSERT OVERWRITE TABLE ${APP}.dim_sku_full PARTITION(dt = '${do_date}')
+-- h. 以sku商品为主表，left join关联其他表
+SELECT
     sku.id,
     sku.price,
     sku.sku_name,
@@ -295,84 +143,240 @@ select
     attr.attrs,
     sale_attr.sale_attrs,
     sku.create_time
-from sku
-         left join spu on sku.spu_id=spu.id
-         left join c3 on sku.category3_id=c3.id
-         left join c2 on c3.category2_id=c2.id
-         left join c1 on c2.category1_id=c1.id
-         left join tm on sku.tm_id=tm.id
-         left join attr on sku.id=attr.sku_id
-         left join sale_attr on sku.id=sale_attr.sku_id;
+FROM sku
+LEFT JOIN spu ON sku.spu_id = spu.id
+LEFT JOIN c3 ON sku.category3_id = c3.id
+LEFT JOIN c2 ON c3.category2_id = c2.id
+LEFT JOIN c1 ON c2.category1_id = c1.id
+LEFT JOIN tm ON sku.tm_id = tm.id
+LEFT JOIN attr ON sku.id = attr.sku_id
+LEFT JOIN sale_attr ON sku.id = sale_attr.sku_id;
 "
 
-#6 用户维度表
-#    数据来源于：
-#        ods_user_info_inc（增量）
-dim_user_sql="
+# todo 2. 优惠券维度表
+dim_coupon_full_sql="
 WITH
---     用户信息表
-user_info AS (
-    SELECT
-        id,
-        login_name,
-        nick_name,
-        passwd,
-        name,
-        phone_num,
-        email,
-        head_img,
-        user_level,
-        birthday,
-        gender,
-        create_time,
-        operate_time,
-        status,
-        '${do_date}' AS start_date,
-        '9999-12-31' AS end_date
-    FROM gmall.ods_user_info_inc
-    WHERE dt='${do_date}'
-)
-INSERT INTO TABLE gmall.dim_user_zip PARTITION (dt='${do_date}')
+    -- a. 优惠卷信息表
+    ci AS (
+        SELECT
+            id,
+            coupon_name,
+            coupon_type,
+            condition_amount,
+            condition_num,
+            activity_id,
+            benefit_amount,
+            benefit_discount,
+            create_time,
+            range_type,
+            limit_num,
+            taken_count,
+            start_time,
+            end_time,
+            operate_time,
+            expire_time
+        FROM ${APP}.ods_coupon_info_full
+        WHERE dt='${do_date}'
+    ),
+    -- b. 购物券类型字典数据
+    coupon_dic AS (
+        SELECT
+            dic_code,
+            dic_name
+        FROM ${APP}.ods_base_dic_full
+        WHERE dt = '${do_date}' AND parent_code = '32'
+    ),
+    -- c. 优惠券范围字典数据
+    range_dic AS (
+        SELECT
+            dic_code,
+            dic_name
+        FROM ${APP}.ods_base_dic_full
+        WHERE dt = '${do_date}' AND parent_code = '33'
+    )
+INSERT OVERWRITE TABLE ${APP}.dim_coupon_full PARTITION(dt = '${do_date}')
+-- d. 优惠卷信息表，关联字段表，并且转换类型值
+SELECT
+    id,
+    coupon_name,
+    coupon_type,
+    coupon_dic.dic_name,
+    condition_amount,
+    condition_num,
+    activity_id,
+    benefit_amount,
+    benefit_discount,
+    -- 优惠类型
+    case coupon_type
+        WHEN '3201' THEN concat('满', condition_amount, '元减', benefit_amount, '元')
+        WHEN '3202' THEN concat('满', condition_num, '件打', 10 * (1 - benefit_discount), '折')
+        WHEN '3203' THEN concat('减', benefit_amount, '元')
+    end AS benefit_rule,
+    create_time,
+    range_type,
+    range_dic.dic_name,
+    limit_num,
+    taken_count,
+    start_time,
+    end_time,
+    operate_time,
+    expire_time
+FROM ci
+LEFT JOIN coupon_dic ON ci.coupon_type = coupon_dic.dic_code
+LEFT JOIN range_dic ON ci.range_type = range_dic.dic_code;
+"
+
+# todo 3. 活动维度表
+dim_activity_full_sql="
+WITH
+     -- a. 活动规则表
+     rule AS (
+         SELECT
+             id,
+             activity_id,
+             activity_type,
+             condition_amount,
+             condition_num,
+             benefit_amount,
+             benefit_discount,
+             benefit_level
+         FROM ${APP}.ods_activity_rule_full
+         WHERE dt='${do_date}'
+     ),
+     -- b. 活动信息表
+     info AS (
+         SELECT
+             id,
+             activity_name,
+             activity_type,
+             activity_desc,
+             start_time,
+             end_time,
+             create_time
+         FROM ${APP}.ods_activity_info_full
+         WHERE dt = '${do_date}'
+     ),
+     -- c. 活动类型字典数据
+     dic AS (
+         SELECT
+             dic_code,
+             dic_name
+         FROM ${APP}.ods_base_dic_full
+         WHERE dt = '${do_date}' AND parent_code = '31'
+     )
+INSERT OVERWRITE TABLE ${APP}.dim_activity_full PARTITION(dt = '${do_date}')
+-- d. 活动规则 关联 活动信息 和 字段属性数据
+SELECT
+    rule.id,
+    info.id,
+    activity_name,
+    rule.activity_type,
+    dic.dic_name,
+    activity_desc,
+    start_time,
+    end_time,
+    create_time,
+    condition_amount,
+    condition_num,
+    benefit_amount,
+    benefit_discount,
+    case rule.activity_type
+        WHEN '3101' THEN concat('满',condition_amount,'元减',benefit_amount,'元')
+        WHEN '3102' THEN concat('满',condition_num,'件打',10*(1-benefit_discount),'折')
+        WHEN '3103' THEN concat('打',10*(1-benefit_discount),'折')
+    end AS benefit_rule,
+    benefit_level
+FROM rule
+LEFT JOIN info ON rule.activity_id = info.id
+LEFT JOIN dic ON rule.activity_type = dic.dic_code;
+"
+
+# todo 4. 地区维度表
+dim_province_full_sql="
+WITH
+    -- a. 省份数据
+    province AS (
+        SELECT
+            id,
+            name,
+            region_id,
+            area_code,
+            iso_code,
+            iso_3166_2
+        FROM ${APP}.ods_base_province_full
+        WHERE dt = '${do_date}'
+    ),
+    -- b. 地区数据
+    region AS (
+        SELECT
+            id,
+            region_name
+        FROM ${APP}.ods_base_region_full
+        WHERE dt = '${do_date}'
+    )
+INSERT OVERWRITE TABLE ${APP}.dim_province_full PARTITION(dt = '${do_date}')
+-- c. 省份数据关联地区数据，按照region_id关联
+SELECT
+    province.id,
+    province.name,
+    province.area_code,
+    province.iso_code,
+    province.iso_3166_2,
+    region_id,
+    region_name
+FROM province
+LEFT JOIN region ON province.region_id = region.id;
+"
+
+# todo 6. 用户维度表
+dim_user_zip_sql="
+INSERT OVERWRITE TABLE ${APP}.dim_user_zip PARTITION (dt = '9999-12-31')
 SELECT
     id,
     login_name,
     nick_name,
-    name,
-    phone_num,
-    email,
+    md5(name) AS name,
+    md5(phone_num) AS phone_num,
+    md5(email),
     user_level,
     birthday,
     gender,
     create_time,
     operate_time,
-    start_date,
-    end_date
-FROM user_info;
+    '${do_date}' AS start_date,
+    '9999-12-31' AS end_date
+FROM ${APP}.ods_user_info_inc
+WHERE dt = '${do_date}';
 "
 
+# 依据传递参数判断数据加载
 case $1 in
-  "dim_activity"){
-    hive -e "${dim_activity_sql}"
-  };;
-  "dim_coupon"){
-    hive -e "${dim_coupon_sql}"
-  };;
-  "dim_province"){
-    hive -e "${dim_province_sql}"
-  };;
-  "dim_sku"){
-    hive -e "${dim_sku_sql}"
-  };;
-  "dim_user"){
-    hive -e "${dim_user_sql}"
-  };;
-  "all"){
-    hive -e "
-    ${dim_activity_sql};
-    ${dim_coupon_sql};
-    ${dim_province_sql};
-    ${dim_sku_sql};
-    ${dim_user_sql};
-    "
-  };;
+"dim_user_zip")
+    hive -e "${hive_tuning_sql}${dim_user_zip_sql}"
+;;
+"dim_sku_full")
+    hive -e "${hive_tuning_sql}${dim_sku_full_sql}"
+;;
+"dim_province_full")
+    hive -e "${hive_tuning_sql}${dim_province_full_sql}"
+;;
+"dim_coupon_full")
+    hive -e "${hive_tuning_sql}${dim_coupon_full_sql}"
+;;
+"dim_activity_full")
+    hive -e "${hive_tuning_sql}${dim_activity_full_sql}"
+;;
+"all")
+    hive -e "${hive_tuning_sql}${dim_user_zip_sql}${dim_sku_full_sql}${dim_province_full_sql}${dim_coupon_full_sql}${dim_activity_full_sql}"
+;;
 esac
+
+
+#step1. 执行权限
+# chmod +x ods_to_dim_init.sh
+#step2. 某天数据，加载到某张表
+# sh ods_to_dim_init.sh dim_sku_full_sql 2024-04-18
+#step3. 某天数据，加载所有表
+# sh ods_to_dim_init.sh all 2024-04-18
+#
+

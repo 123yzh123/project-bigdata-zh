@@ -87,3 +87,10 @@ SELECT *
 FROM gmall.ods_order_info_inc
 WHERE dt = '2024-06-18'
 LIMIT 10;
+
+
+
+LOAD DATA INPATH '/origin_data/gmall/coupon_use_inc/2024-09-11'
+    OVERWRITE INTO TABLE gmall.ods_coupon_use_inc PARTITION (dt = '2024-09-11');
+
+SHOW PARTITIONS gmall.ods_coupon_use_inc;

@@ -37,6 +37,7 @@ CREATE TABLE `date_info` (
   PRIMARY KEY (`date_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='日期信息表';
 
+SELECT * FROM date_info;
 
 DROP TABLE IF EXISTS tmp_dim_date_info;
 CREATE EXTERNAL TABLE tmp_dim_date_info (

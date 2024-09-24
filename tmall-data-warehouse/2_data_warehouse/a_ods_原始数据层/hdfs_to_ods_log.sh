@@ -13,7 +13,9 @@ fi
 echo ================== 日志日期为 $do_date ==================
 sql="
 LOAD DATA INPATH '/origin_data/${APP}/log/${do_date}'
-  OVERWRITE INTO TABLE ${APP}.ods_log_inc PARTITION(dt='${do_date}');"
+  OVERWRITE INTO TABLE ${APP}.ods_log_inc PARTITION(dt='${do_date}');
+"
+
+hive -e "$sql"
 
 
-hive -e "${sql}"

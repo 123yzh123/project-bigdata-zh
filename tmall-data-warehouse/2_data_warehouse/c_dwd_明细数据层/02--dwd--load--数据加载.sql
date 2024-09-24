@@ -54,7 +54,7 @@ FROM cart
 SHOW PARTITIONS gmall.dwd_trade_cart_add_inc;
 SELECT *
 FROM gmall.dwd_trade_cart_add_inc
-WHERE dt = '2024-09-11'
+WHERE dt = '2024-09-12'
 LIMIT 10;
 
 
@@ -184,7 +184,7 @@ FROM detail
 SHOW PARTITIONS gmall.dwd_trade_order_detail_inc;
 SELECT *
 FROM gmall.dwd_trade_order_detail_inc
-WHERE dt = '2024-09-11'
+WHERE dt = '2024-04-18'
 LIMIT 10;
 
 -- （2）每日装载
@@ -440,18 +440,21 @@ where dt = '2024-09-11'
 
 
 -- （2）每日装载
-insert overwrite table gmall.dwd_tool_coupon_pay_inc partition (dt = '2024-09-12')
-select id,
+INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_pay_inc PARTITION (dt = '2024-09-11')
+SELECT id,
        coupon_id,
        user_id,
        order_id,
-       date_format(used_time, 'yyyy-MM-dd') date_id,
+       date_format(used_time, 'yyyy-MM-dd') AS date_id,
        used_time
-from gmall.ods_coupon_use_inc
-where dt = '2024-09-12';
+FROM gmall.ods_coupon_use_inc
+WHERE dt = '2024-09-11'
+  AND date_format(used_time, 'yyyy-MM-dd') = '2024-09-11';
 
-SHOW PARTITIONS gmall.dwd_tool_coupon_pay_inc;
-
+SHOW PARTITIONS gmall.ods_coupon_use_inc;
+SELECT *
+FROM gmall.ods_coupon_use_inc
+WHERE dt = '2024-09-11';
 -- todo 8 互动域-收藏商品-事务事实表
 -- （1）首日装载
 WITH favor_info AS (SELECT id,
@@ -531,7 +534,7 @@ SHOW PARTITIONS gmall.dwd_interaction_comment_inc;
 WITH user_info AS (select id user_id,
                           create_time
                    from gmall.ods_user_info_inc
-                   where dt = '2020-06-11'),
+                   where dt = '2024-09-11'),
      log AS (select common.ar  area_code,
                     common.ba  brand,
                     common.ch  channel,
@@ -541,13 +544,13 @@ WITH user_info AS (select id user_id,
                     common.uid user_id,
                     common.vc  version_code
              from gmall.ods_order_status_log_inc
-             where dt = '2020-06-11'
+             where dt = '2024-09-11'
                and page.page_id = 'register'
                and common.uid is not null),
      base_province AS (select id province_id,
                               area_code
                        from gmall.ods_base_province_full
-                       where dt = '2020-06-11')
+                       where dt = '2024-09-11')
 insert
 overwrite
 table
@@ -631,14 +634,14 @@ t4 AS (SELECT user_id,
 bp AS (SELECT id AS province_id,
               area_code
        FROM gmall.ods_base_province_full
-       WHERE dt = '2020-09-12')
+       WHERE dt = '2024-09-12')
 INSERT
 OVERWRITE
 TABLE
 gmall.dwd_user_login_inc
 PARTITION
 (
-dt = '2020-09-12'
+dt = '2024-09-12'
 )
 SELECT user_id,
        DATE_FORMAT(FROM_UTC_TIMESTAMP(ts, 'GMT+8'), 'yyyy-MM-dd')          AS date_id,
@@ -670,13 +673,13 @@ WITH user_info AS (select id user_id,
                     common.uid user_id,
                     common.vc  version_code
              from gmall.ods_log_inc
-             where dt = '2020-09-11'
+             where dt = '2024-09-11'
                and page.page_id = 'register'
                and common.uid is not null),
      base_province AS (select id province_id,
                               area_code
                        from gmall.ods_base_province_full
-                       where dt = '2020-09-12')
+                       where dt = '2024-09-12')
 insert
 overwrite
 table
