@@ -20,13 +20,13 @@ WITH
             tm_id, tm_name, user_id
              , sum(order_count_7d) AS order_count
         FROM gmall.dws_trade_user_sku_order_nd
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
         GROUP BY tm_id, tm_name, user_id
     )
    , stats_7d AS (
     -- step2. 计算复购率
     SELECT
-        '2024-09-11' AS dt
+        '2024-09-18' AS dt
          , 7 AS recent_days
          , tm_id, tm_name
          -- 计算购买人数
@@ -45,13 +45,13 @@ WITH
         tm_id, tm_name, user_id
          , sum(order_count_30d) AS order_count
     FROM gmall.dws_trade_user_sku_order_nd
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
     GROUP BY tm_id, tm_name, user_id
 )
    , stats_30d AS (
     -- step2. 计算复购率
     SELECT
-        '2024-09-11' AS dt
+        '2024-09-18' AS dt
          , 30 AS recent_days
          , tm_id, tm_name
          -- 计算购买人数
@@ -82,12 +82,12 @@ WITH
             tm_id, tm_name, user_id
              , sum(order_count_7d) AS order_count
         FROM gmall.dws_trade_user_sku_order_nd
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
         GROUP BY tm_id, tm_name, user_id
     )
 -- step2. 计算复购率
 SELECT
-    '2024-09-11' AS dt
+    '2024-09-18' AS dt
      , 7 AS recent_days
      , tm_id, tm_name
      -- 计算购买人数
@@ -123,34 +123,34 @@ GROUP BY tm_id, tm_name
 */
 WITH
    -- step1. 最近1日统计
-    stats_1d AS (SELECT '2024-09-11'            AS dt
+    stats_1d AS (SELECT '2024-09-18'            AS dt
                       , 1                       AS recent_days
                       , tm_id
                       , tm_name
                       , sum(order_count_1d)     AS order_count
                       , count(DISTINCT user_id) AS order_user_count
                  FROM gmall.dws_trade_user_sku_order_1d
-                 WHERE dt = '2024-09-11'
+                 WHERE dt = '2024-09-18'
                  GROUP BY tm_id, tm_name)
    -- step2. 最近7日统计
-   , stats_7d AS (SELECT '2024-09-11'            AS dt
+   , stats_7d AS (SELECT '2024-09-18'            AS dt
                        , 7                       AS recent_days
                        , tm_id
                        , tm_name
                        , sum(order_count_7d)     AS order_count
                        , count(DISTINCT user_id) AS order_user_count
                   FROM gmall.dws_trade_user_sku_order_nd
-                  WHERE dt = '2024-09-11'
+                  WHERE dt = '2024-09-18'
                   GROUP BY tm_id, tm_name)
    -- step3. 最近30日统计
-   , stats_30d AS (SELECT '2024-09-11'            AS dt
+   , stats_30d AS (SELECT '2024-09-18'            AS dt
                         , 30                      AS recent_days
                         , tm_id
                         , tm_name
                         , sum(order_count_30d)    AS order_count
                         , count(DISTINCT user_id) AS order_user_count
                    FROM gmall.dws_trade_user_sku_order_nd
-                   WHERE dt = '2024-09-11'
+                   WHERE dt = '2024-09-18'
                    GROUP BY tm_id, tm_name)
 -- step6. 插入覆盖
 INSERT OVERWRITE TABLE gmall.ads_order_stats_by_tm
@@ -187,7 +187,7 @@ SELECT * FROM stats_30d;
 */
 WITH
    -- step1. 最近1日统计
-    stats_1d AS (SELECT '2024-09-11'            AS dt
+    stats_1d AS (SELECT '2024-09-18'            AS dt
                       , 1                       AS recent_days
                       , category1_id
                       , category1_name
@@ -198,10 +198,10 @@ WITH
                       , sum(order_count_1d)     AS order_count
                       , count(DISTINCT user_id) AS order_user_count
                  FROM gmall.dws_trade_user_sku_order_1d
-                 WHERE dt = '2024-09-11'
+                 WHERE dt = '2024-09-18'
                  GROUP BY category1_id, category1_name, category2_id, category2_name, category3_id, category3_name)
    -- step2. 最近7日统计
-   , stats_7d AS (SELECT '2024-09-11'            AS dt
+   , stats_7d AS (SELECT '2024-09-18'            AS dt
                        , 1                       AS recent_days
                        , category1_id
                        , category1_name
@@ -212,7 +212,7 @@ WITH
                        , sum(order_count_7d)     AS order_count
                        , count(DISTINCT user_id) AS order_user_count
                   FROM gmall.dws_trade_user_sku_order_nd
-                  WHERE dt = '2024-09-11'
+                  WHERE dt = '2024-09-18'
                   GROUP BY category1_id, category1_name, category2_id, category2_name, category3_id, category3_name)
    -- step3. 最近30日统计
    , stats_30d AS (SELECT '2024-09-18'            AS dt
@@ -226,7 +226,7 @@ WITH
                         , sum(order_count_30d)    AS order_count
                         , count(DISTINCT user_id) AS order_user_count
                    FROM gmall.dws_trade_user_sku_order_nd
-                   WHERE dt = '2024-09-11'
+                   WHERE dt = '2024-09-18'
                    GROUP BY category1_id, category1_name, category2_id, category2_name, category3_id, category3_name)
 -- step6. 插入覆盖
 INSERT OVERWRITE TABLE gmall.ads_order_stats_by_cate
@@ -267,12 +267,12 @@ WITH
    -- step1. 商品聚合统计
     stats AS (
         SELECT
-            '2024-09-11' AS dt
+            '2024-09-18' AS dt
              , sku_id
              , sku_name
              , sum(sku_num) AS cart_num
         FROM gmall.dwd_trade_cart_full
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
         GROUP BY sku_id, sku_name
     )
    -- step2. 维度表数据
@@ -283,7 +283,7 @@ WITH
          , category2_id, category2_name
          , category1_id, category1_name
     FROM gmall.dim_sku_full
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
 )
    -- step3. 关联维度
    , join_data AS (
@@ -332,11 +332,11 @@ WITH
    -- step1. 商品聚合统计
     stats AS (
         SELECT
-            '2024-09-11' AS dt
+            '2024-09-18' AS dt
              , sku_id
              , count(id) AS favor_count
         FROM gmall.dwd_interaction_favor_add_inc
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
         GROUP BY sku_id
     )
    -- step2. 维度数据
@@ -344,7 +344,7 @@ WITH
     SELECT
         id, sku_name, tm_id, tm_name
     FROM gmall.dim_sku_full
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
 )
    -- step3. 关联维度
    , join_data AS (

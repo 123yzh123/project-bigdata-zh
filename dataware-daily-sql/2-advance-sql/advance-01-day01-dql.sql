@@ -1,4 +1,3 @@
-
 USE hive_sql_zg6;
 SHOW TABLES IN hive_sql_zg6;
 
@@ -14,35 +13,28 @@ todo: 排序开窗函数
     rank：重复，跳跃，1、1、3、4、5、...
     dense_rank：重复，连续，，1、1、2、3、4、...
 */
-WITH
--- step1. 按照商品分组，统计累计销量
-    tmp1 AS (
-        SELECT
-            sku_id
-             , sum(sku_num) AS sku_num_sum
-        FROM hive_sql_zg6.order_detail
-        GROUP BY sku_id
-    )
--- step2. 加上序号：销量降序排序
-    , tmp2 AS (
-        SELECT
-            sku_id, sku_num_sum
-             , rank() over (order by sku_num_sum DESC) AS rnk
-        FROM tmp1
-    )
--- step3. 过滤获取销量第2商品
-    , tmp3 AS (
-        SELECT sku_id
-        FROM tmp2
-        WHERE rnk = 2
-    )
--- step4. 关联右表，补充数据
+WITH t1 AS (
+    -- step1. 各个商品销量
+    SELECT sku_id
+         , sum(sku_num) AS sku_num_sum
+    FROM hive_sql_zg6.order_detail
+    GROUP BY sku_id)
+   -- step2. 加序号
+   , t2 AS (SELECT sku_id
+                 , sku_num_sum
+                 , dense_rank() over (ORDER BY sku_num_sum DESC ) AS rk
+            FROM t1)
+   -- step3. 过滤获取rk =2
+   , t3 AS (SELECT sku_id
+            FROM t2
+            WHERE rk = 30)
+-- step4. 关联数据，填充null值
 SELECT sku_id
-FROM tmp3
-RIGHT JOIN (
-    SELECT 1 AS x1
-) tmp4 ON 1 = 1
+FROM t3
+         RIGHT JOIN (SELECT 1 AS x1) t4 ON 1 = 1
 ;
+
+
 
 -- todo：2）、查询至少连续三天下单的用户
 /*
@@ -58,39 +50,29 @@ todo 思路：连续登录几天，每天日期与序号差值相同
 */
 WITH
 -- step1. 去重（考虑1天可能多次下单）
-    tmp1 AS (
-        SELECT user_id, create_date
-        FROM hive_sql_zg6.order_info
-        GROUP BY user_id, create_date
-    )
+    tmp1 AS (SELECT user_id, create_date
+             FROM hive_sql_zg6.order_info
+             GROUP BY user_id, create_date)
 -- step2. 序号（用户id分组，日期升序排序，row_number开窗）
-    , tmp2 AS (
-        SELECT
-            user_id, create_date
-            , row_number() OVER (PARTITION BY user_id ORDER BY create_date) AS rnk
-        FROM tmp1
-    )
+   , tmp2 AS (SELECT user_id
+                   , create_date
+                   , row_number() OVER (PARTITION BY user_id ORDER BY create_date) AS rnk
+              FROM tmp1)
 -- step3. 差值（计算日期与序号差值）
-    , tmp3 AS (
-        SELECT
-            user_id, create_date
-            , rnk
-            , date_sub(create_date, rnk) AS date_diff
-        FROM tmp2
-    )
+   , tmp3 AS (SELECT user_id
+                   , create_date
+                   , rnk
+                   , date_sub(create_date, rnk) AS date_diff
+              FROM tmp2)
 -- step4. 分组、计数、过滤
-    , tmp4 AS (
-        SELECT
-            user_id
-    --     , count(user_id) AS days
-    --     , collect_list(create_date) AS date_list
-        FROM tmp3
-        GROUP BY user_id, date_diff
-        HAVING count(user_id) >= 3
-    )
+   , tmp4 AS (SELECT user_id
+              --     , count(user_id) AS days
+              --     , collect_list(create_date) AS date_list
+              FROM tmp3
+              GROUP BY user_id, date_diff
+              HAVING count(user_id) >= 3)
 -- 5. 去重，考虑一个用户多次连续下单
-SELECT
-    DISTINCT user_id
+SELECT DISTINCT user_id
 FROM tmp4
 ;
 
@@ -99,51 +81,43 @@ FROM tmp4
 从订单明细表(order_detail)统计各品类销售出的商品种类数及累积销量最好的商品
 		品类ID（品类名称）、品类销售商品的种类数、销售量最好的商品、销售量
 */
-WITH
-    tmp1 AS (
-        -- step1. 各个商品销量
-        SELECT
-            sku_id
-             , sum(sku_num) AS sku_num_sum
-        FROM hive_sql_zg6.order_detail
-        GROUP BY sku_id
-    )
-    , tmp2 AS (
-        -- step2. 商品品类维表
-        SELECT
-            t1.sku_id
-             , t1.name AS sku_name
-             , t2.category_id
-             , t2.category_name
-        FROM hive_sql_zg6.sku_info t1
-            LEFT JOIN hive_sql_zg6.category_info t2 on t1.category_id = t2.category_id
-    )
-    , tmp3 AS (
-        -- step3. 关联join
-        SELECT
-            tt1.sku_id
-             , tt2.sku_name
-             , tt1.sku_num_sum
-             , tt2.category_id
-             , tt2.category_name
-        FROM tmp1 tt1
-            LEFT JOIN tmp2 tt2 ON tt1.sku_id = tt2.sku_id
-    )
-    , tmp4 AS (
-        -- step4. 使用开窗函数
-        SELECT
-            *
-             -- 聚合开窗函数，计算每个品类商品个数
-             , count(sku_id) OVER (PARTITION BY category_id) AS category_sku_count
-             -- 排序开窗函数，加序号：品类分组，销量排序
-             , rank() over (PARTITION BY category_id ORDER BY sku_num_sum DESC) AS rk
-        FROM tmp3
-    )
-SELECT
-    category_id, category_name
-    , category_sku_count
-    , sku_id, sku_name
-    , sku_num_sum
+WITH tmp1 AS (
+    -- step1. 各个商品销量
+    SELECT sku_id
+         , sum(sku_num) AS sku_num_sum
+    FROM hive_sql_zg6.order_detail
+    GROUP BY sku_id)
+   , tmp2 AS (
+    -- step2. 商品品类维表
+    SELECT t1.sku_id
+         , t1.name AS sku_name
+         , t2.category_id
+         , t2.category_name
+    FROM hive_sql_zg6.sku_info t1
+             LEFT JOIN hive_sql_zg6.category_info t2 on t1.category_id = t2.category_id)
+   , tmp3 AS (
+    -- step3. 关联join
+    SELECT tt1.sku_id
+         , tt2.sku_name
+         , tt1.sku_num_sum
+         , tt2.category_id
+         , tt2.category_name
+    FROM tmp1 tt1
+             LEFT JOIN tmp2 tt2 ON tt1.sku_id = tt2.sku_id)
+   , tmp4 AS (
+    -- step4. 使用开窗函数
+    SELECT *
+         -- 聚合开窗函数，计算每个品类商品个数
+         , count(sku_id) OVER (PARTITION BY category_id)                    AS category_sku_count
+         -- 排序开窗函数，加序号：品类分组，销量排序
+         , rank() over (PARTITION BY category_id ORDER BY sku_num_sum DESC) AS rk
+    FROM tmp3)
+SELECT category_id
+     , category_name
+     , category_sku_count
+     , sku_id
+     , sku_name
+     , sku_num_sum
 FROM tmp4
 WHERE rk = 1
 ;
@@ -179,36 +153,32 @@ WHERE rk = 1
             sum、count、max、min、avg
             自定义udaf函数 = User Definition Aggregation Function
 */
-WITH
-    tmp1 AS (
-        -- step1. 用户分组，统计消费金额
-        SELECT
-            user_id
-            , create_date
-             , sum(total_amount) AS total_amount_sum_day
-        FROM hive_sql_zg6.order_info
-        GROUP BY user_id, create_date
-    )
-    , tmp2 AS (
-        -- step2. 聚合开窗函数，每个用户分组，日期排序，累计金额
-        SELECT
-            user_id, create_date, total_amount_sum_day
-            , sum(total_amount_sum_day) OVER (PARTITION BY user_id ORDER BY create_date) AS total_amount_sum
-        FROM tmp1
-    )
+WITH tmp1 AS (
+    -- step1. 用户分组，统计消费金额
+    SELECT user_id
+         , create_date
+         , sum(total_amount) AS total_amount_sum_day
+    FROM hive_sql_zg6.order_info
+    GROUP BY user_id, create_date)
+   , tmp2 AS (
+    -- step2. 聚合开窗函数，每个用户分组，日期排序，累计金额
+    SELECT user_id
+         , create_date
+         , total_amount_sum_day
+         , sum(total_amount_sum_day) OVER (PARTITION BY user_id ORDER BY create_date) AS total_amount_sum
+    FROM tmp1)
 -- step3. 按照规则，进行匹配，确定VIP登记
-SELECT
-    user_id
-    , create_date
-    , total_amount_sum_day
-    , total_amount_sum
-    , CASE
-        WHEN total_amount_sum >= 100000 THEN '钻石会员'
-        WHEN total_amount_sum >= 80000 THEN '白金会员'
-        WHEN total_amount_sum >= 50000 THEN '黄金会员'
-        WHEN total_amount_sum >= 30000 THEN '白银会员'
-        WHEN total_amount_sum >= 10000 THEN '青铜会员'
-        ELSE '普通会员'
+SELECT user_id
+     , create_date
+     , total_amount_sum_day
+     , total_amount_sum
+     , CASE
+           WHEN total_amount_sum >= 100000 THEN '钻石会员'
+           WHEN total_amount_sum >= 80000 THEN '白金会员'
+           WHEN total_amount_sum >= 50000 THEN '黄金会员'
+           WHEN total_amount_sum >= 30000 THEN '白银会员'
+           WHEN total_amount_sum >= 10000 THEN '青铜会员'
+           ELSE '普通会员'
     END AS vip_level
 FROM tmp2
 ;
@@ -228,45 +198,38 @@ FROM tmp2
 */
 WITH
 -- step1. 去重：同一天下单多次
-    tmp1 AS (
-        SELECT
-            user_id, create_date
-        FROM hive_sql_zg6.order_info
-        GROUP BY user_id, create_date
-    )
+    tmp1 AS (SELECT user_id,
+                    create_date
+             FROM hive_sql_zg6.order_info
+             GROUP BY user_id, create_date)
 -- step2. 加序号：用户ID分区，订单日期排序
-    , tmp2 AS (
-        SELECT
-            user_id, create_date
-             , row_number() OVER (PARTITION BY user_id ORDER BY create_date) AS rnk
-        FROM tmp1
-    )
+   , tmp2 AS (SELECT user_id
+                   , create_date
+                   , row_number() OVER (PARTITION BY user_id ORDER BY create_date) AS rnk
+              FROM tmp1)
 -- step3. 过滤：获取每个用户前2次下单日期
-    , tmp3 AS (
-        SELECT
-            user_id
-             -- 首日下单日期
-             , min(create_date) AS first_order_date
-             -- 除首日之外，再次下单日期
-             , max(create_date) AS second_order_date
-        FROM tmp2
-        WHERE rnk <= 2
-        GROUP BY user_id
-    )
+   , tmp3 AS (SELECT user_id
+                   -- 首日下单日期
+                   , min(create_date) AS first_order_date
+                   -- 除首日之外，再次下单日期
+                   , max(create_date) AS second_order_date
+              FROM tmp2
+              WHERE rnk <= 2
+              GROUP BY user_id)
 -- step4. 计数
 SELECT
-    -- 下单人数
-    count(user_id) AS user_count_first
-    -- 次日下单人数
-    , sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) AS user_count_second
-    -- 计算占比
-    , concat(
+     -- 下单人数
+    count(user_id)                                                      AS user_count_first
+     -- 次日下单人数
+     , sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) AS user_count_second
+     -- 计算占比
+     , concat(
         round(
-            sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) / count(user_id) * 100,
-            1
+                sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) / count(user_id) * 100,
+                1
         ),
         '%'
-    ) AS second_rate
+       )                                                                AS second_rate
 FROM tmp3
 ;
 

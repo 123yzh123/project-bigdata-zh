@@ -73,6 +73,71 @@ GROUP BY channel
 ;
 
 
+
+
+
+-- step5. 插入保存
+INSERT OVERWRITE TABLE gmall.ads_traffic_stats_by_channel
+-- step4. 历史统计
+SELECT dt, recent_days, channel, uv_count, avg_duration_sec, avg_page_count, sv_count, bounce_rate
+FROM gmall.ads_traffic_stats_by_channel
+UNION
+-- step1. 最近1日统计
+SELECT
+    '2024-09-18' AS dt
+    , 1 AS recent_days
+    , channel
+    , count(DISTINCT mid_id) AS uv_count
+    , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
+    , ceil(avg(page_count_1d)) AS avg_page_count
+    , count(session_id) AS sv_count
+    -- 跳出数：某个会话中pv=1，此会话为跳出会话
+--     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
+    -- 跳出率 = 跳出数 / 会话数
+    , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+FROM gmall.dws_traffic_session_page_view_1d
+WHERE dt ='2024-09-18'
+GROUP BY channel
+UNION ALL
+-- step2. 最近7日统计
+SELECT
+    '2024-09-18' AS dt
+     , 7 AS recent_days
+     , channel
+     , count(DISTINCT mid_id) AS uv_count
+     , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
+     , ceil(avg(page_count_1d)) AS avg_page_count
+     , count(session_id) AS sv_count
+     -- 跳出数：某个会话中pv=1，此会话为跳出会话
+--     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
+     -- 跳出率 = 跳出数 / 会话数
+     , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+FROM gmall.dws_traffic_session_page_view_1d
+WHERE dt >= date_sub('2024-09-18', 6) AND dt <= '2024-09-18'
+GROUP BY channel
+UNION ALL
+SELECT
+    '2024-09-18' AS dt
+     , 30 AS recent_days
+     , channel
+     , count(DISTINCT mid_id) AS uv_count
+     , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
+     , ceil(avg(page_count_1d)) AS avg_page_count
+     , count(session_id) AS sv_count
+     -- 跳出数：某个会话中pv=1，此会话为跳出会话
+--     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
+     -- 跳出率 = 跳出数 / 会话数
+     , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+FROM gmall.dws_traffic_session_page_view_1d
+WHERE dt >= date_sub('2024-09-18', 29) AND dt <= '2024-09-18'
+GROUP BY channel
+;
+
+
+
+
+
+
 -- =============================================================================
 -- todo 1.2 路径分析
 -- =============================================================================
@@ -95,7 +160,7 @@ WITH
              -- 加序号，某个Session会话访问页面编号
              , row_number() over (PARTITION BY session_id ORDER BY view_time) AS rk
         FROM gmall.dwd_traffic_page_view_inc
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
     )
    , tmp_1d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
@@ -122,7 +187,7 @@ WITH
          -- 加序号，某个Session会话访问页面编号
          , row_number() over (PARTITION BY session_id ORDER BY view_time) AS rk
     FROM gmall.dwd_traffic_page_view_inc
-    WHERE dt >= date_sub('2024-09-11', 6) AND dt <= '2024-09-11'
+    WHERE dt >= date_sub('2024-09-18', 6) AND dt <= '2024-09-18'
 )
    , tmp_7d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
@@ -149,7 +214,7 @@ WITH
          -- 加序号，某个Session会话访问页面编号
          , row_number() over (PARTITION BY session_id ORDER BY view_time) AS rk
     FROM gmall.dwd_traffic_page_view_inc
-    WHERE dt >= date_sub('2024-09-11', 29) AND dt <= '2024-09-11'
+    WHERE dt >= date_sub('2024-09-18', 29) AND dt <= '2024-09-18'
 )
    , tmp_30d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
@@ -171,12 +236,13 @@ INSERT OVERWRITE TABLE gmall.ads_page_path
 SELECT dt, recent_days, source, target, path_count FROM gmall.ads_page_path
 UNION
 -- todo 第4、合并最近1日、7日、30日统计
-SELECT '2024-09-11' AS dt, 1 AS recent_days, source_page, target_page, path_count FROM stats_1d
+SELECT '2024-09-18' AS dt, 1 AS recent_days, source_page, target_page, path_count FROM stats_1d
 UNION ALL
-SELECT '2024-09-11' AS dt, 7 AS recent_days, source_page, target_page, path_count FROM stats_7d
+SELECT '2024-09-18' AS dt, 7 AS recent_days, source_page, target_page, path_count FROM stats_7d
 UNION ALL
-SELECT '2024-09-11' AS dt, 30 AS recent_days, source_page, target_page, path_count FROM stats_30d
+SELECT '2024-09-18' AS dt, 30 AS recent_days, source_page, target_page, path_count FROM stats_30d
 ;
+
 
 
 -- ================================= 最近1日统计 =================================
@@ -191,7 +257,7 @@ WITH
              -- 加序号，某个Session会话访问页面编号
              , row_number() over (PARTITION BY session_id ORDER BY view_time) AS rk
         FROM gmall.dwd_traffic_page_view_inc
-        WHERE dt = '2024-09-11'
+        WHERE dt = '2024-09-18'
     )
    , tmp_1d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
@@ -205,4 +271,5 @@ SELECT
     source_page, target_page, count(*) AS path_count
 FROM tmp_1d2
 GROUP BY source_page, target_page;
+
 

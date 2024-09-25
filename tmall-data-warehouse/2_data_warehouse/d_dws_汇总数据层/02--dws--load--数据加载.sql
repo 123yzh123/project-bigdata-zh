@@ -32,7 +32,7 @@ WITH
                       sum(nvl(split_coupon_amount, 0.0))   AS coupon_reduce_amount_1d,
                       sum(split_total_amount)              AS order_total_amount_1d
                FROM gmall.dwd_trade_order_detail_inc
-               WHERE dt <= '2024-09-12'
+               WHERE dt <= '2024-09-18'
                GROUP BY dt, user_id, sku_id),
     -- b. 商品维度数据
     sku AS (SELECT id,
@@ -46,7 +46,7 @@ WITH
                    tm_id,
                    tm_name
             FROM gmall.dim_sku_full
-            WHERE dt = '2024-09-12')
+            WHERE dt = '2024-09-18')
 INSERT
 OVERWRITE
 TABLE
@@ -93,7 +93,7 @@ WITH detail AS (SELECT user_id,
                        sum(nvl(split_coupon_amount, 0.0))   AS coupon_reduce_amount_1d,
                        sum(split_total_amount)              AS order_total_amount_1d
                 FROM gmall.dwd_trade_order_detail_inc
-                WHERE dt = '2024-09-11'
+                WHERE dt = '2024-09-18'
                 GROUP BY user_id, sku_id),
      -- b. 商品维度数据
      sku AS (SELECT id,
@@ -107,8 +107,8 @@ WITH detail AS (SELECT user_id,
                     tm_id,
                     tm_name
              FROM gmall.dim_sku_full
-             WHERE dt = '2024-09-11')
-INSERT OVERWRITE TABLE gmall.dws_trade_user_sku_order_1d PARTITION( dt = '2024-09-11')
+             WHERE dt = '2024-09-18')
+INSERT OVERWRITE TABLE gmall.dws_trade_user_sku_order_1d PARTITION( dt = '2024-09-18')
 SELECT user_id,
        id,
        sku_name,
@@ -153,7 +153,7 @@ from dwd_trade_order_detail_inc
 group by user_id, dt;
 
 -- （2）每日装载
-insert overwrite table dws_trade_user_order_1d partition (dt = '2024-09-12')
+insert overwrite table dws_trade_user_order_1d partition (dt = '2024-09-18')
 select user_id,
        count(distinct (order_id)),
        sum(sku_num),
@@ -162,7 +162,7 @@ select user_id,
        sum(nvl(split_coupon_amount, 0)),
        sum(split_total_amount)
 from dwd_trade_order_detail_inc
-where dt = '2024-09-12'
+where dt = '2024-09-18'
 group by user_id;
 
 SHOW PARTITIONS gmall.dws_trade_user_order_1d;
@@ -180,12 +180,12 @@ from dwd_trade_cart_add_inc
 group by user_id, dt;
 
 -- （2）每日装载
-insert overwrite table dws_trade_user_cart_add_1d partition (dt = '2024-09-11')
+insert overwrite table dws_trade_user_cart_add_1d partition (dt = '2024-09-18')
 select user_id,
        count(*),
        sum(sku_num)
 from dwd_trade_cart_add_inc
-where dt = '2024-09-11'
+where dt = '2024-09-18'
 group by user_id;
 
 SHOW PARTITIONS gmall.dws_trade_user_cart_add_1d;
@@ -220,7 +220,7 @@ WITH
                       sum(split_total_amount)            AS order_total_amount_1d,
                       dt
                FROM gmall.dwd_trade_order_detail_inc
-               WHERE dt <= '2024-09-11'
+               WHERE dt <= '2024-09-18'
                GROUP BY province_id, dt),
     -- b. 地区维度表数据
     province AS (SELECT id,
@@ -229,7 +229,7 @@ WITH
                         iso_code,
                         iso_3166_2
                  FROM gmall.dim_province_full
-                 WHERE dt = '2024-09-11')
+                 WHERE dt = '2024-09-18')
 INSERT OVERWRITE TABLE gmall.dws_trade_province_order_1d PARTITION(dt)
 SELECT province_id,
        province_name,
@@ -249,7 +249,7 @@ FROM detail
 SHOW PARTITIONS gmall.dws_trade_province_order_1d;
 SELECT *
 FROM gmall.dws_trade_province_order_1d
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 
 -- （2）每日装载
@@ -263,7 +263,7 @@ WITH
                       sum(nvl(split_coupon_amount, 0))   AS coupon_reduce_amount_1d,
                       sum(split_total_amount)            AS order_total_amount_1d
                FROM gmall.dwd_trade_order_detail_inc
-               WHERE dt = '2024-09-12'
+               WHERE dt = '2024-09-18'
                GROUP BY province_id),
     -- b. 地区维度表数据
     province AS (SELECT id,
@@ -272,8 +272,8 @@ WITH
                         iso_code,
                         iso_3166_2
                  FROM gmall.dim_province_full
-                 WHERE dt = '2024-09-12')
-INSERT OVERWRITE TABLE gmall.dws_trade_province_order_1d PARTITION(dt = '2024-09-12')
+                 WHERE dt = '2024-09-18')
+INSERT OVERWRITE TABLE gmall.dws_trade_province_order_1d PARTITION(dt = '2024-09-18')
 SELECT province_id,
        province_name,
        area_code,
@@ -290,7 +290,7 @@ FROM detail
 -- 查询
 SELECT *
 FROM gmall.dws_trade_province_order_1d
-WHERE dt = '2024-09-12';
+WHERE dt = '2024-09-18';
 
 
 -- =========================================================================
@@ -301,26 +301,51 @@ WHERE dt = '2024-09-12';
         dwd_traffic_page_view_inc
 */
 
+SET hive.stats.autogather=false;
+INSERT OVERWRITE TABLE gmall.dws_traffic_session_page_view_1d PARTITION(dt = '2024-09-18')
+SELECT
+    session_id,
+    mid_id,
+    brand,
+    model,
+    operate_system,
+    version_code,
+    channel,
+    sum(during_time) AS during_time_1d,
+    count(*) AS page_count_1d
+FROM gmall.dwd_traffic_page_view_inc
+WHERE dt = '2024-09-18'
+GROUP BY session_id, mid_id,brand,model,operate_system,version_code,channel;
+
+SHOW PARTITIONS gmall.dws_traffic_session_page_view_1d;
+SELECT * FROM gmall.dws_traffic_session_page_view_1d WHERE dt='2024-09-18';
+
+
+
+
+
+
+
 -- ************
 -- =========================================================================
 -- todo 1.9 流量域-访客页面粒度-页面浏览-最近1日-汇总表
 -- =========================================================================
-INSERT OVERWRITE TABLE dws_traffic_page_visitor_page_view_1d PARTITION (dt = '2024-09-12')
-SELECT mid_id
-     , brand
-     , model
-     , operate_system
-     , page_id
-     , sum(during_time)
-     , count(page_id)
-FROM dwd_traffic_page_view_inc
-WHERE dt = '2024-09-12'
-GROUP BY mid_id, brand, model, operate_system, page_id;
+SET hive.stats.autogather=false;
+INSERT OVERWRITE TABLE gmall.dws_traffic_page_visitor_page_view_1d PARTITION(dt = '2024-09-18' )
+SELECT
+    mid_id,
+    brand,
+    model,
+    operate_system,
+    page_id,
+    sum(during_time) AS during_time_1d,
+    count(*) AS view_count_1d
+FROM gmall.dwd_traffic_page_view_inc
+WHERE dt = '2024-09-18'
+GROUP BY mid_id,brand,model,operate_system,page_id;
 
--- 查询
-SELECT *
-FROM gmall.dws_traffic_page_visitor_page_view_1d
-WHERE dt = '2024-09-12';
+SHOW PARTITIONS gmall.dws_traffic_page_visitor_page_view_1d ;
+SELECT * FROM gmall.dws_traffic_page_visitor_page_view_1d WHERE dt = '2024-09-18';
 
 -- =========================================================================
 -- todo 2.1 交易域-用户商品粒度-订单-最近n日汇总表
@@ -329,7 +354,7 @@ WHERE dt = '2024-09-12';
     汇总表：
         dws_trade_user_sku_order_1d
 */
-INSERT OVERWRITE TABLE gmall.dws_trade_user_sku_order_nd PARTITION (dt = '2024-09-11')
+INSERT OVERWRITE TABLE gmall.dws_trade_user_sku_order_nd PARTITION (dt = '2024-09-18')
 SELECT user_id,
        sku_id,
        sku_name,
@@ -342,12 +367,12 @@ SELECT user_id,
        tm_id,
        tm_name,
        -- 最近7日汇总数据
-       sum(if(dt >= date_sub('2024-09-11', 6), order_count_1d, 0))            AS order_count_7d,
-       sum(if(dt >= date_sub('2024-09-11', 6), order_num_1d, 0))              AS order_num_7d,
-       sum(if(dt >= date_sub('2024-09-11', 6), order_original_amount_1d, 0))  AS order_original_amount_7d,
-       sum(if(dt >= date_sub('2024-09-11', 6), activity_reduce_amount_1d, 0)) AS activity_reduce_amount_7d,
-       sum(if(dt >= date_sub('2024-09-11', 6), coupon_reduce_amount_1d, 0))   AS coupon_reduce_amount_7d,
-       sum(if(dt >= date_sub('2024-09-11', 6), order_total_amount_1d, 0))     AS order_total_amount_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), order_count_1d, 0))            AS order_count_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), order_num_1d, 0))              AS order_num_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), order_original_amount_1d, 0))  AS order_original_amount_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), activity_reduce_amount_1d, 0)) AS activity_reduce_amount_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), coupon_reduce_amount_1d, 0))   AS coupon_reduce_amount_7d,
+       sum(if(dt >= date_sub('2024-09-18', 6), order_total_amount_1d, 0))     AS order_total_amount_7d,
        -- 最近30日汇总数据
        sum(order_count_1d)                                                    AS order_count_30d,
        sum(order_num_1d)                                                      AS order_num_30d,
@@ -357,8 +382,8 @@ SELECT user_id,
        sum(order_total_amount_1d)                                             AS order_total_amount_30d
 FROM gmall.dws_trade_user_sku_order_1d
 -- step1. 获取最近30日数据
-WHERE dt >= date_sub('2024-09-11', 29)
-  AND dt <= '2024-09-11'
+WHERE dt >= date_sub('2024-09-18', 29)
+  AND dt <= '2024-09-18'
 GROUP BY user_id, sku_id, sku_name, category1_id, category1_name,
          category2_id, category2_name, category3_id, category3_name,
          tm_id, tm_name;
@@ -367,7 +392,7 @@ GROUP BY user_id, sku_id, sku_name, category1_id, category1_name,
 SHOW PARTITIONS gmall.dws_trade_user_sku_order_nd;
 SELECT *
 FROM gmall.dws_trade_user_sku_order_nd
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 
 -- =========================================================================
@@ -383,7 +408,7 @@ WHERE dt = '2024-09-11';
         dws_trade_province_order_1d
 */
 -- （1）首日装载
-INSERT OVERWRITE TABLE gmall.dws_trade_user_order_td partition (dt = '2024-09-11')
+INSERT OVERWRITE TABLE gmall.dws_trade_user_order_td partition (dt = '2024-09-18')
 SELECT user_id,
        min(dt)                        AS login_date_first,
        max(dt)                        AS login_date_last,
@@ -394,14 +419,14 @@ SELECT user_id,
        sum(coupon_reduce_amount_1d)   AS coupon_reduce_amount,
        sum(order_total_amount_1d)     AS total_amount
 FROM gmall.dws_trade_user_order_1d
-WHERE dt <= '2024-09-11'
+WHERE dt <= '2024-09-18'
 GROUP BY user_id;
 
 -- 查询
 SHOW PARTITIONS gmall.dws_trade_user_order_td;
 SELECT *
 FROM gmall.dws_trade_user_order_td
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 -- （2）每日装载
 WITH
@@ -416,7 +441,7 @@ WITH
                    coupon_reduce_amount_td,
                    total_amount_td
             FROM gmall.dws_trade_user_order_td
-            WHERE dt = date_sub('2024-09-11', 1)),
+            WHERE dt = date_sub('2024-09-18', 1)),
     -- b. 当天统计【最近1日汇总数据】
     new AS (SELECT user_id,
                    order_count_1d,
@@ -426,11 +451,11 @@ WITH
                    coupon_reduce_amount_1d,
                    order_total_amount_1d
             FROM gmall.dws_trade_user_order_1d
-            WHERE dt = '2024-09-11')
-INSERT OVERWRITE TABLE gmall.dws_trade_user_order_td partition(dt = '2024-09-11')
+            WHERE dt = '2024-09-18')
+INSERT OVERWRITE TABLE gmall.dws_trade_user_order_td partition(dt = '2024-09-18')
 SELECT nvl(old.user_id, new.user_id)                                                           AS user_id,
-       if(new.user_id IS NOT NULL AND old.user_id IS NULL, '2024-09-11', old.order_date_first) AS order_date_first,
-       if(new.user_id IS NOT NULL, '2024-09-11', old.order_date_last)                          AS order_date_last,
+       if(new.user_id IS NOT NULL AND old.user_id IS NULL, '2024-09-18', old.order_date_first) AS order_date_first,
+       if(new.user_id IS NOT NULL, '2024-09-18', old.order_date_last)                          AS order_date_last,
        nvl(old.order_count_td, 0) + nvl(new.order_count_1d, 0)                                 AS order_count_td,
        nvl(old.order_num_td, 0) + nvl(new.order_num_1d, 0)                                     AS order_num_td,
        nvl(old.original_amount_td, 0) + nvl(new.order_original_amount_1d, 0)                   AS original_amount_td,
@@ -445,7 +470,7 @@ FROM old
 -- 查询
 SELECT *
 FROM gmall.dws_trade_user_order_td
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 
 -- =========================================================================
@@ -453,14 +478,14 @@ WHERE dt = '2024-09-11';
 -- =========================================================================
 
 --（1）首日装载
-INSERT OVERWRITE TABLE dws_user_user_login_td PARTITION (dt = '2024-09-11')
+INSERT OVERWRITE TABLE dws_user_user_login_td PARTITION (dt = '2024-09-18')
 SELECT u.id,
        nvl(login_date_last, date_format(create_time, 'yyyy-MM-dd')),
        nvl(login_count_td, 1)
 FROM (SELECT id,
              create_time
       FROM dim_user_zip
-      WHERE dt = '2024-09-11') u
+      WHERE dt = '2024-09-18') u
          LEFT JOIN
      (SELECT user_id,
              max(dt)  login_date_last,
@@ -475,20 +500,20 @@ FROM gmall.dws_user_user_login_td
 ;
 -- （2）每日装载
 
-insert overwrite table dws_user_user_login_td partition (dt = '2024-09-12')
+insert overwrite table dws_user_user_login_td partition (dt = '2024-09-18')
 select nvl(old.user_id, new.user_id),
-       if(new.user_id is null, old.login_date_last, '2024-09-12'),
+       if(new.user_id is null, old.login_date_last, '2024-09-18'),
        nvl(old.login_count_td, 0) + nvl(new.login_count_1d, 0)
 from (select user_id,
              login_date_last,
              login_count_td
       from dws_user_user_login_td
-      where dt = date_add('2024-09-12', -1)) old
+      where dt = date_add('2024-09-18', -1)) old
          full outer join
      (select user_id,
              count(*) login_count_1d
       from dwd_user_login_inc
-      where dt = '2024-09-12'
+      where dt = '2024-09-18'
       group by user_id) new
      on old.user_id = new.user_id;
 

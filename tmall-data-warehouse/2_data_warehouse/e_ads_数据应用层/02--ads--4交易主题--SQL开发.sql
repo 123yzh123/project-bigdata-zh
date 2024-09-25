@@ -23,13 +23,13 @@ SELECT *
 FROM gmall.ads_trade_stats
 UNION
 --a. 聚合统计
-SELECT '2024-09-11'             AS dt
+SELECT '2024-09-18'             AS dt
      , 1                        AS recent_days
      , sum(split_total_amount)  AS order_total_amount
      , count(DISTINCT order_id) AS order_count
      , count(DISTINCT user_id)  AS order_user_count
 FROM gmall.dwd_trade_order_detail_inc
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 -- todo 直接使用DWS层汇总表
 --c. 插入表
@@ -39,13 +39,13 @@ SELECT *
 FROM gmall.ads_trade_stats
 UNION
 --a. 聚合统计
-SELECT '2024-09-11'               AS dt
+SELECT '2024-09-18'               AS dt
      , 1                          AS recent_days
      , sum(order_total_amount_1d) AS order_total_amount
      , sum(order_count_1d)        AS order_count
      , count(user_id)             AS order_user_count
 FROM gmall.dws_trade_user_order_1d
-WHERE dt = '2024-09-11';
+WHERE dt = '2024-09-18';
 
 -- =============================================================================
 -- todo 4.2 各省份交易统计
@@ -67,7 +67,7 @@ WHERE dt = '2024-09-11';
 */
 WITH stats_1d AS (
     -- step1. 最近1日统计，从DWS汇总表
-    SELECT '2024-09-11'               AS `dt`
+    SELECT '2024-09-18'               AS `dt`
          , 1                          AS `recent_days`
          , `province_id`
          , `province_name`
@@ -77,11 +77,11 @@ WITH stats_1d AS (
          , sum(order_count_1d)        AS `order_count`
          , sum(order_total_amount_1d) AS `order_total_amount`
     FROM gmall.dws_trade_province_order_1d
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
     GROUP BY province_id, province_name, area_code, iso_code, iso_3166_2)
    , stats_7d AS (
     -- step2. 最近7日统计，从DWS汇总表
-    SELECT '2024-09-11'               AS `dt`
+    SELECT '2024-09-18'               AS `dt`
          , 7                          AS `recent_days`
          , `province_id`
          , `province_name`
@@ -91,11 +91,11 @@ WITH stats_1d AS (
          , sum(order_count_7d)        AS `order_count`
          , sum(order_total_amount_7d) AS `order_total_amount`
     FROM gmall.dws_trade_province_order_nd
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
     GROUP BY province_id, province_name, area_code, iso_code, iso_3166_2)
    , stats_30d AS (
     -- step3. 最近30日统计，从DWS汇总表
-    SELECT '2024-09-11'                AS `dt`
+    SELECT '2024-09-18'                AS `dt`
          , 30                          AS `recent_days`
          , `province_id`
          , `province_name`
@@ -105,20 +105,17 @@ WITH stats_1d AS (
          , sum(order_count_30d)        AS `order_count`
          , sum(order_total_amount_30d) AS `order_total_amount`
     FROM gmall.dws_trade_province_order_nd
-    WHERE dt = '2024-09-11'
+    WHERE dt = '2024-09-18'
     GROUP BY province_id, province_name, area_code, iso_code, iso_3166_2)
 -- c. 插入表，采用覆盖
 INSERT OVERWRITE TABLE gmall.ads_order_by_province
 -- b. 历史统计
-SELECT *
-FROM gmall.ads_order_by_province
+SELECT * FROM gmall.ads_order_by_province
 UNION
 -- a. 合并聚合统计
-SELECT *
-FROM stats_1d
+SELECT * FROM stats_1d
 UNION ALL
-SELECT *
-FROM stats_7d
+SELECT * FROM stats_7d
 UNION ALL
-SELECT *
-FROM stats_30d;
+SELECT * FROM stats_30d;
+

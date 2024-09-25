@@ -397,63 +397,67 @@ SHOW PARTITIONS gmall.dwd_tool_coupon_get_inc;
 
 -- todo 6 工具域-优惠券使用(下单)-事务事实表 zhou
 -- （1）首日装载
-
-insert overwrite table gmall.dwd_tool_coupon_order_inc partition (dt)
-select id,
-       coupon_id,
-       user_id,
-       order_id,
-       date_format(using_time, 'yyyy-MM-dd') date_id,
-       using_time,
-       date_format(using_time, 'yyyy-MM-dd')
-from gmall.ods_coupon_use_inc
-where dt = '2024-09-11'
-  and using_time is not null;
+set hive.exec.dynamic.partition.mode=nonstrict;
+INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_order_inc partition(dt)
+SELECT
+    id,
+    coupon_id,
+    user_id,
+    order_id,
+    date_format(using_time, 'yyyy-MM-dd') AS date_id,
+    using_time,
+    date_format(using_time, 'yyyy-MM-dd') AS dt
+FROM gmall.ods_coupon_use_inc
+WHERE dt = '2024-09-11' AND using_time IS NOT NULL;
 
 -- （2）每日装载
-insert overwrite table gmall.dwd_tool_coupon_order_inc partition (dt = '2024-09-12')
-select id,
-       coupon_id,
-       user_id,
-       order_id,
-       date_format(using_time, 'yyyy-MM-dd') date_id,
-       using_time
-from gmall.ods_coupon_use_inc
-where dt = '2024-09-12';
+SET hive.stats.autogather=false;
+INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_order_inc PARTITION(dt = '2024-09-11')
+SELECT
+    id,
+    coupon_id,
+    user_id,
+    order_id,
+    date_format(using_time, 'yyyy-MM-dd') AS date_id,
+    using_time
+FROM gmall.ods_coupon_use_inc
+WHERE dt = '2024-09-11' AND date_format(using_time, 'yyyy-MM-dd') = '2024-09-11';
 
 SHOW PARTITIONS gmall.dwd_tool_coupon_order_inc;
-
+SELECT * FROM gmall.dwd_tool_coupon_order_inc WHERE dt ='2024-09-11';
 
 -- todo 7 工具域-优惠券使用(支付)-事务事实表
 -- （1）首日装载
-insert overwrite table gmall.dwd_tool_coupon_pay_inc partition (dt)
-select id,
-       coupon_id,
-       user_id,
-       order_id,
-       date_format(used_time, 'yyyy-MM-dd') date_id,
-       used_time,
-       date_format(used_time, 'yyyy-MM-dd')
-from gmall.ods_coupon_use_inc
-where dt = '2024-09-11'
-  and used_time is not null;
+set hive.exec.dynamic.partition.mode=nonstrict;
+INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_pay_inc partition(dt)
+SELECT
+    id,
+    coupon_id,
+    user_id,
+    order_id,
+    date_format(used_time, 'yyyy-MM-dd') AS date_id,
+    used_time,
+    date_format(used_time, 'yyyy-MM-dd') AS dt
+FROM gmall.ods_coupon_use_inc
+WHERE dt='2024-09-11' AND used_time IS NOT NULL;
 
 
 -- （2）每日装载
-INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_pay_inc PARTITION (dt = '2024-09-11')
-SELECT id,
-       coupon_id,
-       user_id,
-       order_id,
-       date_format(used_time, 'yyyy-MM-dd') AS date_id,
-       used_time
+SET hive.stats.autogather=false;
+INSERT OVERWRITE TABLE gmall.dwd_tool_coupon_pay_inc PARTITION(dt = '2024-09-11')
+SELECT
+    id,
+    coupon_id,
+    user_id,
+    order_id,
+    date_format(used_time, 'yyyy-MM-dd') AS date_id,
+    used_time
 FROM gmall.ods_coupon_use_inc
-WHERE dt = '2024-09-11'
-  AND date_format(used_time, 'yyyy-MM-dd') = '2024-09-11';
+WHERE dt = '2024-09-11' AND date_format(used_time, 'yyyy-MM-dd') = '2024-09-11';
 
-SHOW PARTITIONS gmall.ods_coupon_use_inc;
+SHOW PARTITIONS gmall.dwd_tool_coupon_pay_inc;
 SELECT *
-FROM gmall.ods_coupon_use_inc
+FROM gmall.dwd_tool_coupon_pay_inc
 WHERE dt = '2024-09-11';
 -- todo 8 互动域-收藏商品-事务事实表
 -- （1）首日装载
