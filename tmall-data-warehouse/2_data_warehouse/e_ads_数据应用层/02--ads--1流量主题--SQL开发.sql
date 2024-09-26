@@ -195,12 +195,14 @@ WITH tmp_1d1 AS (
          -- 加序号，某个Session会话访问页面编号
          , row_number() over (PARTITION BY session_id ORDER BY view_time)     AS rk
     FROM gmall.dwd_traffic_page_view_inc
-    WHERE dt = '2024-09-18')
+    WHERE dt = '2024-09-18'
+    )
    , tmp_1d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
     SELECT concat('step-', rk, ':', page_id)          AS source_page
          , concat('step-', rk + 1, ':', next_page_id) AS target_page
-    FROM tmp_1d1)
+    FROM tmp_1d1
+    )
 -- step3. 分组聚合
 SELECT source_page,
        target_page,
