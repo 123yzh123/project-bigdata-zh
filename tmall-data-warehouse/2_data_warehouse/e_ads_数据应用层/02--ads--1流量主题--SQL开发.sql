@@ -13,90 +13,25 @@
 -- step5. 插入保存
 INSERT OVERWRITE TABLE gmall.ads_traffic_stats_by_channel
 -- step4. 历史统计
-SELECT dt,
-       recent_days,
-       channel,
-       uv_count,
-       avg_duration_sec,
-       avg_page_count,
-       sv_count,
-       bounce_rate
-FROM gmall.ads_traffic_stats_by_channel
-UNION
--- step1. 最近1日统计
-SELECT '2024-09-18'                                                   AS dt
-     , 1                                                              AS recent_days
-     , channel
-     , count(DISTINCT (mid_id))                                       AS uv_count
-     , round(avg(during_time_1d / 1000), 2)                           AS avg_duration_sec
-     , ceil(avg(page_count_1d))                                       AS avg_page_count
-     , count(session_id)                                              AS sv_count
-     -- 跳出数：某个会话中pv=1，此会话为跳出会话
-     --, sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
-     -- 跳出率 = 跳出数 / 会话数
-     , round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
-FROM gmall.dws_traffic_session_page_view_1d
-WHERE dt = '2024-09-18'
-GROUP BY channel
-UNION ALL
--- step2. 最近7日统计
-SELECT '2024-09-18'                                                   AS dt
-     , 7                                                              AS recent_days
-     , channel
-     , count(DISTINCT (mid_id))                                       AS uv_count
-     , round(avg(during_time_1d / 1000), 2)                           AS avg_duration_sec
-     , ceil(avg(page_count_1d))                                       AS avg_page_count
-     , count(session_id)                                              AS sv_count
-     -- 跳出数：某个会话中pv=1，此会话为跳出会话
-     --, sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
-     -- 跳出率 = 跳出数 / 会话数
-     , round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
-FROM gmall.dws_traffic_session_page_view_1d
-WHERE dt >= date_sub('2024-09-18', 6)
-  AND dt <= '2024-09-18'
-GROUP BY channel
-UNION ALL
--- step3. 最近30日统计
-SELECT '2024-09-18'                                                   AS dt
-     , 30                                                             AS recent_days
-     , channel
-     , count(DISTINCT (mid_id))                                       AS uv_count
-     , round(avg(during_time_1d / 1000), 2)                           AS avg_duration_sec
-     , ceil(avg(page_count_1d))                                       AS avg_page_count
-     , count(session_id)                                              AS sv_count
-     -- 跳出率 = 跳出数 / 会话数
-     , round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
-FROM gmall.dws_traffic_session_page_view_1d
-WHERE dt >= date_sub('2024-09-18', 29)
-  AND dt <= '2024-09-18'
-GROUP BY channel
-;
-
-
-
-
-
--- step5. 插入保存
-INSERT OVERWRITE TABLE gmall.ads_traffic_stats_by_channel
--- step4. 历史统计
-SELECT dt, recent_days, channel, uv_count, avg_duration_sec, avg_page_count, sv_count, bounce_rate
+SELECT
+    dt, recent_days, channel, uv_count, avg_duration_sec, avg_page_count, sv_count, bounce_rate
 FROM gmall.ads_traffic_stats_by_channel
 UNION
 -- step1. 最近1日统计
 SELECT
     '2024-09-18' AS dt
-    , 1 AS recent_days
-    , channel
-    , count(DISTINCT mid_id) AS uv_count
-    , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
-    , ceil(avg(page_count_1d)) AS avg_page_count
-    , count(session_id) AS sv_count
-    -- 跳出数：某个会话中pv=1，此会话为跳出会话
---     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
-    -- 跳出率 = 跳出数 / 会话数
-    , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+     , 1 AS recent_days
+     , channel
+     , count(DISTINCT (mid_id)) AS uv_count
+     , round(avg(during_time_1d / 1000), 2) AS avg_duration_sec
+     , ceil(avg(page_count_1d)) AS avg_page_count
+     , count(session_id) AS sv_count
+     -- 跳出数：某个会话中pv=1，此会话为跳出会话
+     --, sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
+     -- 跳出率 = 跳出数 / 会话数
+     ,round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
 FROM gmall.dws_traffic_session_page_view_1d
-WHERE dt ='2024-09-18'
+WHERE dt = '2024-09-18'
 GROUP BY channel
 UNION ALL
 -- step2. 最近7日统计
@@ -104,36 +39,33 @@ SELECT
     '2024-09-18' AS dt
      , 7 AS recent_days
      , channel
-     , count(DISTINCT mid_id) AS uv_count
-     , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
+     , count(DISTINCT (mid_id)) AS uv_count
+     , round(avg(during_time_1d / 1000), 2) AS avg_duration_sec
      , ceil(avg(page_count_1d)) AS avg_page_count
      , count(session_id) AS sv_count
      -- 跳出数：某个会话中pv=1，此会话为跳出会话
---     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
+     --, sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
      -- 跳出率 = 跳出数 / 会话数
-     , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+     ,round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
 FROM gmall.dws_traffic_session_page_view_1d
 WHERE dt >= date_sub('2024-09-18', 6) AND dt <= '2024-09-18'
 GROUP BY channel
 UNION ALL
+-- step3. 最近30日统计
 SELECT
     '2024-09-18' AS dt
      , 30 AS recent_days
      , channel
-     , count(DISTINCT mid_id) AS uv_count
-     , round(avg(during_time_1d / 1000 ), 2) AS avg_duration_sec
+     , count(DISTINCT (mid_id)) AS uv_count
+     , round(avg(during_time_1d / 1000), 2) AS avg_duration_sec
      , ceil(avg(page_count_1d)) AS avg_page_count
      , count(session_id) AS sv_count
-     -- 跳出数：某个会话中pv=1，此会话为跳出会话
---     , sum(if(page_count_1d = 1, 1, 0)) AS bounce_count
      -- 跳出率 = 跳出数 / 会话数
-     , round(sum(`if`(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rete
+     ,round(sum(if(page_count_1d = 1, 1, 0)) / count(session_id), 4) AS bounce_rate
 FROM gmall.dws_traffic_session_page_view_1d
 WHERE dt >= date_sub('2024-09-18', 29) AND dt <= '2024-09-18'
 GROUP BY channel
 ;
-
-
 
 
 
