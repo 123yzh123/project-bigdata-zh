@@ -83,14 +83,13 @@ FROM lose_data ld
 
 WITH register_data AS (
     -- step1. 当日以前的7日的注册用户
-    SELECT
-        date_id AS register_date
+    SELECT date_id AS register_date
          , user_id
     FROM gmall.dwd_user_register_inc
     WHERE dt >= date_sub('2024-09-18', 7)
       AND dt <= date_sub('2024-09-18', 1)
-    ORDER BY date_id
-    ), login_data AS (
+    ORDER BY date_id)
+   , login_data AS (
     -- step2. 历史汇总表找出所有用户最后登录日期
     SELECT user_id
     FROM gmall.dws_user_user_login_td

@@ -73,7 +73,6 @@ GROUP BY channel
 ;
 
 
-
 -- =============================================================================
 -- todo 1.2 路径分析
 -- =============================================================================
@@ -97,22 +96,19 @@ WITH
              -- 加序号，某个Session会话访问页面编号
              , row_number() over (PARTITION BY session_id ORDER BY view_time)     AS rk
         FROM gmall.dwd_traffic_page_view_inc
-        WHERE dt = '2024-09-18'
-    )
+        WHERE dt = '2024-09-18')
    , tmp_1d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
     SELECT concat('step-', rk, ':', page_id)          AS source_page
          , concat('step-', rk + 1, ':', next_page_id) AS target_page
-    FROM tmp_1d1
-    )
+    FROM tmp_1d1)
    , stats_1d AS (
     -- step3. 分组聚合
     SELECT source_page,
            target_page,
            count(*) AS path_count
     FROM tmp_1d2
-    GROUP BY source_page, target_page
-    )
+    GROUP BY source_page, target_page)
    -- todo 第2、最近7日统计
    , tmp_7d1 AS (
     -- step1. 会话中数据加序号和页面ID
@@ -126,8 +122,7 @@ WITH
          , row_number() over (PARTITION BY session_id ORDER BY view_time)     AS rk
     FROM gmall.dwd_traffic_page_view_inc
     WHERE dt >= date_sub('2024-09-18', 6)
-      AND dt <= '2024-09-18'
-    )
+      AND dt <= '2024-09-18')
    , tmp_7d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
     SELECT concat('step-', rk, ':', page_id)          AS source_page
@@ -139,8 +134,7 @@ WITH
            target_page,
            count(*) AS path_count
     FROM tmp_7d2
-    GROUP BY source_page, target_page
-    )
+    GROUP BY source_page, target_page)
    -- todo 第3、最近30日统计
    , tmp_30d1 AS (
     -- step1. 会话中数据加序号和页面ID
@@ -154,8 +148,7 @@ WITH
          , row_number() over (PARTITION BY session_id ORDER BY view_time)     AS rk
     FROM gmall.dwd_traffic_page_view_inc
     WHERE dt >= date_sub('2024-09-18', 29)
-      AND dt <= '2024-09-18'
-    )
+      AND dt <= '2024-09-18')
    , tmp_30d2 AS (
     -- step2. 拼接字符串，确定访问路径顺序
     SELECT concat('step-', rk, ':', page_id)          AS source_page
@@ -167,19 +160,25 @@ WITH
            target_page,
            count(*) AS path_count
     FROM tmp_30d2
-    GROUP BY source_page, target_page
-    )
+    GROUP BY source_page, target_page)
 -- todo 第6、保存数据
-INSERT OVERWRITE TABLE gmall.ads_page_path
+INSERT
+OVERWRITE
+TABLE
+gmall.ads_page_path
 -- todo 第5、历史统计
-SELECT dt, recent_days, source, target, path_count FROM gmall.ads_page_path
+SELECT dt, recent_days, source, target, path_count
+FROM gmall.ads_page_path
 UNION
 -- todo 第4、合并最近1日、7日、30日统计
-SELECT '2024-09-18' AS dt, 1 AS recent_days, source_page, target_page, path_count FROM stats_1d
+SELECT '2024-09-18' AS dt, 1 AS recent_days, source_page, target_page, path_count
+FROM stats_1d
 UNION ALL
-SELECT '2024-09-18' AS dt, 7 AS recent_days, source_page, target_page, path_count FROM stats_7d
+SELECT '2024-09-18' AS dt, 7 AS recent_days, source_page, target_page, path_count
+FROM stats_7d
 UNION ALL
-SELECT '2024-09-18' AS dt, 30 AS recent_days, source_page, target_page, path_count FROM stats_30d
+SELECT '2024-09-18' AS dt, 30 AS recent_days, source_page, target_page, path_count
+FROM stats_30d
 ;
 
 
