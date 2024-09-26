@@ -208,4 +208,3 @@ SELECT source_page,
 FROM tmp_1d2
 GROUP BY source_page, target_page;
 
-
