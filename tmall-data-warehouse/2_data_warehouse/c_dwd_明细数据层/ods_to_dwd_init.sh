@@ -628,7 +628,7 @@ esac
 #step1. 执行权限
 # chmod +x ods_to_dwd_init.sh
 #step2. 某天数据，加载到某张表
-# sh ods_to_dwd_init.sh dwd_tool_coupon_pay_inc 2024-09-11
+# sh ods_to_dwd.sh dwd_tool_coupon_pay_inc 2024-09-13
 #step3. 某天数据，加载所有表
 # sh ods_to_dwd_init.sh all 2024-04-18
 #

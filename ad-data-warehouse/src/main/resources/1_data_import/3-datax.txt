@@ -1,0 +1,170 @@
+
+
+1. 下载解压
+    cd /opt/module/
+    rz
+    chmod u+x datax-202308.tar.gz
+    tar -zxf datax-202308.tar.gz
+
+2. 测试
+    【确保JDK、Python2安装，并且配置环境变量】
+        [bwie@node102 ~]$ java -version
+        [bwie@node102 ~]$ python --version
+    python /opt/module/datax/bin/datax.py /opt/module/datax/job/job.json
+
+3. DataX 核心
+    采用星型模型方式，以Plugin + Framework架构设计
+        1）. reader，从数据源读取数据
+        2）. FrameWork，框架本身，实现数据缓冲、并行度设置，流量限制，参数优化等
+        3）. writer，将数据写入目标
+
+4. 开发任务：job配置json文件
+    reader：
+        mysqlreader、hdfsreader
+    writer：
+        hdfswriter、mysqlwriter
+
+5. 执行job任务
+    数据同步到HDFS上时，先创建HDFS上目录，再执行job任务
+        hdfs dfs -mkdir -p /origin_data/gmall/sku_info_full/2024-10-07
+        python /opt/module/datax/bin/datax.py /opt/module/datax/job/import_gmall_sku_info_full.json
+        hdfs dfs -cat /origin_data/gmall/base_province_full/2024-10-07/base* | zcat
+
+6. 编写job配置文件：
+    import_gmall_base_dic_full.json ，内容如下：
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "channel":1
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "username": "root",
+            "password": "123456",
+            "column": [
+              "id",
+              "name",
+              "region_id",
+              "area_code",
+              "iso_code",
+              "iso_3166_2"
+            ],
+            "splitPk": "id",
+            "where": " 1 = 1",
+            "connection": [
+              {
+                "table": [
+                  "base_province"
+                ],
+                "jdbcUrl": [
+                  "jdbc:mysql://node101:3306/gmall"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "hdfswriter",
+          "parameter": {
+            "defaultFS": "hdfs://node101:8020",
+            "fileType": "text",
+            "path": "/origin_data/gmall/base_province_full/2024-10-07",
+            "fileName": "base_province_full",
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "region_id",
+                "type": "STRING"
+              },
+              {
+                "name": "area_code",
+                "type": "STRING"
+              },
+              {
+                "name": "iso_code",
+                "type": "STRING"
+              },
+              {
+                "name": "iso_3166_2",
+                "type": "STRING"
+              }
+            ],
+            "writeMode": "truncate",
+            "fieldDelimiter": "\t",
+            "compress":"GZIP"
+          }
+        }
+      }
+    ]
+  }
+}
+
+附录：官方提供json配置文件
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "channel":1
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "streamreader",
+          "parameter": {
+            "column" : [
+              {
+                "value": "DataX",
+                "type": "string"
+              },
+              {
+                "value": 19890604,
+                "type": "long"
+              },
+              {
+                "value": "1989-06-04 00:00:00",
+                "type": "date"
+              },
+              {
+                "value": true,
+                "type": "bool"
+              },
+              {
+                "value": "test",
+                "type": "bytes"
+              }
+            ],
+            "sliceRecordCount": 100000
+          }
+        },
+        "writer": {
+          "name": "streamwriter",
+          "parameter": {
+            "print": false,
+            "encoding": "UTF-8"
+          }
+        }
+      }
+    ]
+  }
+}

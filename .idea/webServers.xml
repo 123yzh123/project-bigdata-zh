@@ -3,9 +3,23 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="94da8877-8cd1-44c6-a79c-cf0576fddd9e" name="node101">
-        <fileTransfer rootFolder="/home/bwie" accessType="SFTP" host="node101" port="22" sshConfigId="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" sshConfig="bwie@node101:22 password">
+        <fileTransfer rootFolder="/home/bwie" accessType="SFTP" host="node101" port="22" sshConfigId="fa2b42dc-d60a-4ebd-951f-65de2bc9f961" sshConfig="bwie@node101:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="cc771add-10db-4ba5-a0e6-c269f8e7faf3" name="node103">
+        <fileTransfer rootFolder="/home/bwie" accessType="SFTP" host="node103" port="22" sshConfigId="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" sshConfig="bwie@node103:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="d580c31e-fa86-4370-8dcc-22cf38bfe0d6" name="node102">
+        <fileTransfer accessType="SFTP" host="node102" port="22" sshConfigId="a468fe54-ee66-42b4-bb7c-24c3443457f9" sshConfig="bwie@node102:22">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
         </fileTransfer>
       </webServer>

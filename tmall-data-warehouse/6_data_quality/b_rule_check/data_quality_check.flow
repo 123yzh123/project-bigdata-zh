@@ -1,0 +1,19 @@
+nodes:
+  - name: check_ods
+    type: command
+    config:
+      command: bash check_ods.sh ${dt}
+
+  - name: check_dim
+    type: command
+    dependsOn:
+      - check_ods
+    config:
+      command: bash check_dim.sh ${dt}
+
+  - name: check_dwd
+    type: command
+    dependsOn:
+      - check_ods
+    config:
+      command: bash check_dwd.sh ${dt}

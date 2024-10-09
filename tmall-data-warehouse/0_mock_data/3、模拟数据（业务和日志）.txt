@@ -70,7 +70,7 @@
             a1.sources.r1.filegroups.f1 = /opt/module/applog/log/app.*
             a1.sources.r1.positionFile = /opt/module/flume/job/taildir_position.json
             a1.sources.r1.interceptors =  i1
-            a1.sources.r1.interceptors.i1.type = net.bwie.flume.interceptor.ETLInterceptor$Builder
+            a1.sources.r1.interceptors.i1.type = net.bwie.flume.net.bwie.flume.interceptor.ETLInterceptor$Builder
 
             #配置channel
             a1.channels.c1.type = org.apache.flume.channel.kafka.KafkaChannel
@@ -95,7 +95,7 @@
             a1.sources.r1.kafka.bootstrap.servers = node101:9092,node102:9092,node103:9092
             a1.sources.r1.kafka.topics = topic-log
             a1.sources.r1.interceptors = i1
-            a1.sources.r1.interceptors.i1.type = net.bwie.flume.interceptor.TimestampInterceptor$Builder
+            a1.sources.r1.interceptors.i1.type = net.bwie.flume.net.bwie.flume.interceptor.TimestampInterceptor$Builder
 
             #配置channel
             a1.channels.c1.type = file

@@ -8,9 +8,13 @@
   <packaging>pom</packaging>
 
   <name>project-bigdata-zh</name>
-  <url>http://maven.apache.org</url>
+  <url>https://maven.apache.org</url>
   <modules>
     <module>realtime-data-warehouse</module>
+      <module>tmall-flume-log</module>
+    <module>tmall-hive-udf</module>
+    <module>tmall-hive-udf</module>
+      <module>ad-data-warehouse</module>
   </modules>
 
   <properties>

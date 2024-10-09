@@ -153,36 +153,33 @@ WHERE rk = 1
             sum、count、max、min、avg
             自定义udaf函数 = User Definition Aggregation Function
 */
-WITH tmp1 AS (
-    -- step1. 用户分组，统计消费金额
-    SELECT user_id
-         , create_date
-         , sum(total_amount) AS total_amount_sum_day
-    FROM hive_sql_zg6.order_info
-    GROUP BY user_id, create_date)
-   , tmp2 AS (
-    -- step2. 聚合开窗函数，每个用户分组，日期排序，累计金额
-    SELECT user_id
-         , create_date
-         , total_amount_sum_day
-         , sum(total_amount_sum_day) OVER (PARTITION BY user_id ORDER BY create_date) AS total_amount_sum
-    FROM tmp1)
--- step3. 按照规则，进行匹配，确定VIP登记
+WITH
+-- step1. 聚合统计：每个用户下单
+    day_agg AS (SELECT user_id
+                     , create_date
+                     , sum(total_amount) AS amount_day
+                FROM hive_sql_zg6.order_info
+                GROUP BY user_id, create_date)
+-- step2. 每个用户，按照日期累加统计
+   , user_agg AS (SELECT user_id
+                       , create_date
+                       , amount_day
+                       , sum(amount_day) OVER (PARTITION BY user_id ORDER BY create_date) AS user_amount
+                  FROM day_agg)
+-- step3. 使用when函数，依据金额确定会员等级
 SELECT user_id
      , create_date
-     , total_amount_sum_day
-     , total_amount_sum
+     , amount_day
+     , user_amount
      , CASE
-           WHEN total_amount_sum >= 100000 THEN '钻石会员'
-           WHEN total_amount_sum >= 80000 THEN '白金会员'
-           WHEN total_amount_sum >= 50000 THEN '黄金会员'
-           WHEN total_amount_sum >= 30000 THEN '白银会员'
-           WHEN total_amount_sum >= 10000 THEN '青铜会员'
+           WHEN user_amount >= 100000 THEN '钻石会员'
+           WHEN user_amount >= 80000 THEN '白金会员'
+           WHEN user_amount >= 50000 THEN '黄金会员'
+           WHEN user_amount >= 30000 THEN '白银会员'
+           WHEN user_amount >= 10000 THEN '青铜会员'
            ELSE '普通会员'
     END AS vip_level
-FROM tmp2
-;
-
+FROM user_agg;
 
 
 -- todo: 5）、查询首次下单后第二天连续下单的用户比率
@@ -196,41 +193,41 @@ FROM tmp2
         step3. 首次下单日期和第二次下单日期
         step4. 计数
 */
-WITH
--- step1. 去重：同一天下单多次
-    tmp1 AS (SELECT user_id,
-                    create_date
-             FROM hive_sql_zg6.order_info
-             GROUP BY user_id, create_date)
--- step2. 加序号：用户ID分区，订单日期排序
-   , tmp2 AS (SELECT user_id
-                   , create_date
-                   , row_number() OVER (PARTITION BY user_id ORDER BY create_date) AS rnk
-              FROM tmp1)
--- step3. 过滤：获取每个用户前2次下单日期
-   , tmp3 AS (SELECT user_id
-                   -- 首日下单日期
-                   , min(create_date) AS first_order_date
-                   -- 除首日之外，再次下单日期
-                   , max(create_date) AS second_order_date
-              FROM tmp2
-              WHERE rnk <= 2
-              GROUP BY user_id)
--- step4. 计数
+WITH order_data AS (
+    -- step1. 去重
+    SELECT user_id
+         , create_date
+    FROM hive_sql_zg6.order_info
+    GROUP BY user_id, create_date)
+   , rank_data AS (
+    -- step2. 加序号
+    SELECT user_id
+         , create_date
+         , row_number() over (PARTITION BY user_id ORDER BY create_date) AS rk
+    FROM order_data)
+   , date_data AS (
+    -- step3. 首次下单日期和第二次下单日期
+    SELECT user_id
+         -- 下单第一个日期
+         , min(create_date) AS fist_order_date
+         -- 下单第2个日期
+         , max(create_date) AS second_order_date
+    FROM rank_data
+    WHERE rk <= 2
+    GROUP BY user_id)
+-- step4. 计算比例
 SELECT
-     -- 下单人数
-    count(user_id)                                                      AS user_count_first
-     -- 次日下单人数
-     , sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) AS user_count_second
-     -- 计算占比
+     -- 总数
+    count(user_id)                                                       AS user_count
+     -- 次日下单用户数
+     , sum(`if`(datediff(second_order_date, fist_order_date) = 1, 1, 0)) AS continue_user_count
+     -- 比例
      , concat(
         round(
-                sum(if(date_add(first_order_date, 1) = second_order_date, 1, 0)) / count(user_id) * 100,
-                1
-        ),
+                sum(`if`(datediff(second_order_date, fist_order_date) = 1, 1, 0)) / count(user_id),
+                3
+        ) * 100,
         '%'
-       )                                                                AS second_rate
-FROM tmp3
+       )                                                                 AS user_order_rate
+FROM date_data
 ;
-
-

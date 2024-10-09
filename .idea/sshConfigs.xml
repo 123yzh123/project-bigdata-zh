@@ -2,7 +2,11 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="node101" id="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" port="22" nameFormat="DESCRIPTIVE" username="bwie" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" connectionConfig="{&quot;serverAliveInterval&quot;:300}" host="node103" id="312a3e10-c65d-4641-a2ae-f7f2284ea0b8" port="22" nameFormat="DESCRIPTIVE" username="bwie" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="node101" id="fa2b42dc-d60a-4ebd-951f-65de2bc9f961" port="22" nameFormat="DESCRIPTIVE" username="bwie" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="node102" id="a468fe54-ee66-42b4-bb7c-24c3443457f9" port="22" customName="bwie@node102:22" nameFormat="CUSTOM" username="bwie" useOpenSSHConfig="true">
+        <option name="customName" value="bwie@node102:22" />
+      </sshConfig>
     </configs>
   </component>
 </project>

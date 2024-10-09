@@ -1,0 +1,19 @@
+nodes:
+  - name: dq_check_ods
+    type: command
+    config:
+      command: bash check_ods.sh ${dt}
+
+  - name: dq_check_dim
+    type: command
+    dependsOn:
+      - dq_check_ods
+    config:
+      command: bash check_dim.sh ${dt}
+
+  - name: dq_check_dwd
+    type: command
+    dependsOn:
+      - dq_check_ods
+    config:
+      command: bash check_dwd.sh ${dt}

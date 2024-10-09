@@ -38,7 +38,7 @@ CREATE EXTERNAL TABLE gmall.ods_base_dic_full
     PARTITIONED BY (`dt` STRING)
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     STORED AS TEXTFILE
-    LOCATION '/warehouse/gmall/ods/ods_base_dic_full/';
+    LOCATION 'hdfs://node101:8020/warehouse/gmall_ods/ods_base_dic_full/';
 
 
 -- ======================================================================
@@ -54,7 +54,7 @@ CREATE EXTERNAL TABLE gmall.ods_base_trademark_full
     PARTITIONED BY (`dt` STRING)
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     STORED AS TEXTFILE
-    LOCATION '/warehouse/gmall/ods/ods_base_trademark_full/';
+    LOCATION 'hdfs://node101:8020/warehouse/gmall_ods/ods_base_dic_full/';
 
 
 -- ======================================================================

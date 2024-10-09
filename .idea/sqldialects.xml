@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/src/main/resources/2_data_warehouse/2-spark-ddl-dml.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/src/main/resources/2_data_warehouse/a_ods_原始数据层/01--ods--ddl--创建表.sql" dialect="SparkSQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/00-table-basic.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/01-basic-day01.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/02-basic-day02.sql" dialect="HiveQL" />
@@ -34,6 +36,14 @@
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/2_data_warehouse/e_ads_数据应用层/03--ads--exploded数据扩容.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/3_data_export/00--mysql--数据插入更新.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/3_data_export/01--ddl--创建表--mysql.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/4_report_visual/report/2.2用户留存率--MySQL.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/4_report_visual/report/2.4用户行为漏斗分析--MySQL.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/4_report_visual/report/ads_user_action.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/4_report_visual/report/ads_user_retention.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/4_report_visual/scripts/gmall_report--202409.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/6_data_quality/DQ_SQL.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/6_data_quality/a_mysql_ddl/create_table_ddl.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/tmall-data-warehouse/6_data_quality/c_report_visual/data_supervisor.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/tmall-data-warehouse/8_sql_performance_tuning/01_small_file_merge.sql" dialect="HiveQL" />
   </component>
 </project>

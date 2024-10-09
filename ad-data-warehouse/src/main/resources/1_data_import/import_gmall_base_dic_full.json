@@ -1,0 +1,82 @@
+{
+  "job": {
+    "setting": {
+      "speed": {
+        "channel":1
+      },
+      "errorLimit": {
+        "record": 0,
+        "percentage": 0.02
+      }
+    },
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "username": "root",
+            "password": "123456",
+            "column": [
+              "id",
+              "name",
+              "region_id",
+              "area_code",
+              "iso_code",
+              "iso_3166_2"
+            ],
+            "splitPk": "id",
+            "where": " 1 = 1",
+            "connection": [
+              {
+                "table": [
+                  "base_province"
+                ],
+                "jdbcUrl": [
+                  "jdbc:mysql://node101:3306/gmall"
+                ]
+              }
+            ]
+          }
+        },
+        "writer": {
+          "name": "hdfswriter",
+          "parameter": {
+            "defaultFS": "hdfs://node101:8020",
+            "fileType": "text",
+            "path": "/origin_data/gmall/base_province_full/2024-10-07",
+            "fileName": "base_province_full",
+            "column": [
+              {
+                "name": "id",
+                "type": "BIGINT"
+              },
+              {
+                "name": "name",
+                "type": "STRING"
+              },
+              {
+                "name": "region_id",
+                "type": "STRING"
+              },
+              {
+                "name": "area_code",
+                "type": "STRING"
+              },
+              {
+                "name": "iso_code",
+                "type": "STRING"
+              },
+              {
+                "name": "iso_3166_2",
+                "type": "STRING"
+              }
+            ],
+            "writeMode": "truncate",
+            "fieldDelimiter": "\t",
+            "compress":"GZIP"
+          }
+        }
+      }
+    ]
+  }
+}
