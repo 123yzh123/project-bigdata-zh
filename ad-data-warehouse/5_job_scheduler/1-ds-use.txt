@@ -1,0 +1,28 @@
+
+Standalone
+    https://dolphinscheduler.apache.org/en-us/docs/3.1.3/guide/installation/standalone
+    # 1. 下载
+    https://www.apache.org/dyn/closer.lua/dolphinscheduler/3.2.0/apache-dolphinscheduler-3.2.0-bin.tar.gz
+
+    # 2. 上传解压
+    cd /opt/module
+    rz
+    chmod u+x apache-dolphinscheduler-3.2.0-bin.tar.gz
+    tar -xvzf apache-dolphinscheduler-3.2.0-bin.tar.gz
+
+    # 3. 启动服务
+    mv apache-dolphinscheduler-3.2.0-bin dolphinscheduler
+    cd dolphinscheduler
+    bin/dolphinscheduler-daemon.sh start standalone-server
+    jps
+
+    # 4. 界面登录
+     http://node103:12345/dolphinscheduler/ui
+     用户名和密码:
+         admin/dolphinscheduler123
+
+
+https://blog.csdn.net/2301_79691134/article/details/137585064
+https://blog.csdn.net/zcs2312852665/article/details/136286069
+
+

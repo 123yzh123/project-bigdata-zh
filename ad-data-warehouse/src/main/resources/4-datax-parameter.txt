@@ -1,0 +1,36 @@
+
+
+1、DataX配置文件传递参数
+    1)语法
+        python datax.py mysqltomysqljsonid.json -p"-Dparameter1=value1 -Dparameter2=value2"
+
+    2)案例
+        json文件：
+            "path": "/origin_data/gmall/base_province_full/${do_date}",
+        执行命令：
+            hdfs dfs -mkdir -p /origin_data/gmall/base_province_full/2024-10-08
+            python /opt/module/datax/bin/datax.py /opt/module/datax/job/import_gmall_base_dic_full_execute.json -p"-Ddo_date=2024-10-08"
+
+
+2、DolphinScheduler中传递参数
+    https://blog.csdn.net/weixin_45417821/article/details/127091817
+    本地参数和全局参数
+    1）本地参数是指只针对单个任务节点有效的参数。
+        ➢ dt：参数名
+        ➢ IN/OUT：IN 表示向当前节点传参，OUT 表示向下游节点传参
+        ➢ VARCHAR：参数值类型
+        ➢ 2022-09-20：参数值
+
+    2）全局参数是指针对整个工作流的所有任务节点都有效的参数。
+
+
+    3）参数传递
+        DolphinScheduler 支持上游任务节点向下游任务节点传参。
+        目前支持这个特性的任务类型有：Shell、SQL、Procedure存储过程。
+
+    4）参数优先级
+        全局参数 <  上游任务传递的参数 <  本地参数。
+
+    5）日期时间参数
+        ${yyyy-MM-dd}  当天日期
+        $[yyyy-MM-dd-1]  昨天日期

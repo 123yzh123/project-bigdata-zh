@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/ad-data-warehouse/src/main/resources/2_data_warehouse/2-spark-ddl-dml.sql" dialect="SparkSQL" />
-    <file url="file://$PROJECT_DIR$/ad-data-warehouse/src/main/resources/2_data_warehouse/a_ods_原始数据层/01--ods--ddl--创建表.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/0_mock_data/ad_db/ad_init.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/a_ods_原始数据层/ad-ods-ddl.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/a_ods_原始数据层/ad-ods-load.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/b_dim_公共维度层/ad-dim-ddl.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/b_dim_公共维度层/ad-dim-insert.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad-dwd-clickhouse.sql" dialect="ClickHouse" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad-dwd-ddl.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad_report_dwd_ad_event_inc.sql" dialect="ClickHouse" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/00-table-basic.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/01-basic-day01.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/02-basic-day02.sql" dialect="HiveQL" />

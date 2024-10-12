@@ -1,0 +1,87 @@
+
+广告投放：腾讯
+	点击click
+		https://developers.e.qq.com/docs/guide/conversion/new_version/dianjijiance
+	曝光impression
+		https://developers.e.qq.com/docs/guide/conversion/new_version/baoguangjiance
+
+
+
+广告投放日志数据
+	|
+	ODS层：ods_ad_log_inc表
+		time_local
+		request_method
+		request_uri
+		status
+		server_addr
+
+"2024-10-05T18:27:15.400""GET""/ad/baidu/impression?id=184&t=1728124032533&ip=139.5.129.223&ua=Mozilla/5.0%20(X11;%20U;%20Slackware%20Linux%20i686;%20en-US;%20rv:1.9.0.10)%20Gecko/2009042315%20Firefox/3.0.10&device_id=&os_type=""200""203.90.0.54"
+
+"2024-10-09T16:06:31.518""GET""/ad/juliang/click?id=204&t=1728461190402&ip=27.0.207.227&ua=Mozilla/5.0%20(X11;%20U;%20Linux%20x86_64;%20en-US;%20rv:1.9.0.5)%20Gecko/2008122120%20Gentoo%20Firefox/3.0.5&device_id=&os_type=""200""202.134.217.224"
+	
+	|
+	解析字段：request_uri
+	|
+	DWD层：dwd_ad_event_inc表
+		event_time
+		event_type
+		ad_id
+			ad_name
+			ad_product_id
+			ad_product_name
+			ad_product_price
+			ad_material_id
+			ad_material_url
+			ad_group_id
+			platform_id
+			platform_name_en
+			platform_name_zh
+		client_country
+		client_area
+		client_province
+		client_city
+		client_ip
+		client_device_id
+		client_os_type
+		client_os_version
+		client_browser_type
+		client_browser_version
+		client_user_agent
+		is_invalid_traffic
+
+
+（1）广告曝光点击数据流
+	首先使用Nginx服务器接收数据请求，然后将数据落盘到日志文件。之后使用Flume采集日志文件并将数据暂时写入Kafka进行缓冲，后边再由Flume消费Kafka并将数据写入HDFS。
+（2）广告管理平台数据库
+	使用专门的数据库同步工具DataX进行批量同步，直接由数据库写入HDFS。
+
+
+任务：
+	1. 日志数据存储HDFS
+		目录：
+			/origin_data/ad/log
+		上传：
+			2024-10-01
+			2024-10-02
+			2024-10-03
+			2024-10-04
+			2024-10-05
+			2024-10-06
+			2024-10-07
+			2024-10-08
+			2024-10-09
+			2024-10-10		
+	2. 业务数据
+		node103、MySQL8
+		1）、数据库名称为ad，编码为utf8mb4，排序规则为utf8mb4_general_ci
+		2）、导入数据库结构脚本ad_init.sql
+
+        python /opt/module/datax/bin/datax.py /opt/module/datax/job/import.ad.server_host.json -p"-Ddo_date=2024-10-01"
+	3. 数据同步
+		DataX同步，提供json配置文件
+		使用DS调度配置
+			ssh node102 "source /etc/profile; python ${DATAX_HOME}/bin/datax.py -p'-Dtargetdir=路径' json配置文件"
+
+	
+	

@@ -1,0 +1,64 @@
+{
+  "job": {
+    "content": [
+      {
+        "reader": {
+          "name": "mysqlreader",
+          "parameter": {
+            "column": [
+              "id",
+              "name",
+              "price"
+            ],
+            "connection": [
+              {
+                "jdbcUrl": [
+                  "jdbc:mysql://node103:3306/ad?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf-8"
+                ],
+                "table": [
+                  "product"
+                ]
+              }
+            ],
+            "password": "123456",
+            "splitPk": "id",
+            "username": "root",
+            "where": "1=1"
+          }
+        },
+        "writer": {
+          "name": "hdfswriter",
+          "parameter": {
+            "column": [
+              {
+                "name": "id",
+                "type": "bigint"
+              },
+              {
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "name": "price",
+                "type": "double"
+              }
+            ],
+            "compress": "gzip",
+            "defaultFS": "hdfs://node101:8020",
+            "fieldDelimiter": "\t",
+            "fileName": "product",
+            "fileType": "text",
+            "path": "/origin_data/ad/product_full/${do_date}",
+            "writeMode": "truncate",
+            "nullFormat": "\\N"
+          }
+        }
+      }
+    ],
+    "setting": {
+      "speed": {
+        "channel": 1
+      }
+    }
+  }
+}
