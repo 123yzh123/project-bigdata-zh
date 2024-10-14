@@ -42,6 +42,6 @@ CREATE EXTERNAL TABLE IF NOT EXISTS ad_dwd.dwd_ad_event_inc
     is_invalid_traffic     BOOLEAN COMMENT '是否是异常流量'
 ) PARTITIONED BY (`dt` STRING)
     STORED AS ORC
-    LOCATION '/warehouse/ad_dwd/dwd_ad_event_inc/'
+    LOCATION 'hdfs://node101:8020/warehouse/ad_dwd/dwd_ad_event_inc/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 

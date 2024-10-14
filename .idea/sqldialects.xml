@@ -9,6 +9,10 @@
     <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad-dwd-clickhouse.sql" dialect="ClickHouse" />
     <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad-dwd-ddl.sql" dialect="SparkSQL" />
     <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/ad_report_dwd_ad_event_inc.sql" dialect="ClickHouse" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/c_dwd_明细数据层/dwd_load.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/d_ads_汇总数据层/1.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/d_ads_汇总数据层/ad-ads-ddl.sql" dialect="SparkSQL" />
+    <file url="file://$PROJECT_DIR$/ad-data-warehouse/2_data_warehouse/d_ads_汇总数据层/mysql-ad-report-ddl.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/00-table-basic.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/01-basic-day01.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/dataware-daily-sql/1-basic-sql/02-basic-day02.sql" dialect="HiveQL" />
