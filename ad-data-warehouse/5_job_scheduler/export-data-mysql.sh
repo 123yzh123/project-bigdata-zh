@@ -1,8 +1,4 @@
-
-
-#
 #测试用脚本生成的配置文件是否可用。
-#
 
 # todo 1 各省市-广告统计ads_ad_stats_by_province
 python /opt/module/datax/bin/datax.py \
